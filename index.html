@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alias Online</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root {
+    --bg: #0d0d10;
+    --surface: #16161c;
+    --card: #1e1e28;
+    --border: #2a2a38;
+    --accent: #f5c842;
+    --accent2: #e8463a;
+    --text: #f0f0f5;
+    --muted: #6b6b82;
+    --team1: #4facfe;
+    --team2: #f77b72;
+    --radius: 14px;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
+
+  /* bg texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(245,200,66,.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 80% 90%, rgba(79,172,254,.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; width: 100%; max-width: 540px; padding: 20px 16px 40px; }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 32px 0 24px;
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 64px;
+    letter-spacing: 6px;
+    color: var(--accent);
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(245,200,66,.3);
+  }
+  .logo span { color: var(--text); }
+  .tagline { font-size: 13px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; flex-direction: column; gap: 16px; }
+  .screen.active { display: flex; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .card-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* ── INPUTS ── */
+  .input-row { display: flex; gap: 10px; }
+  input[type=text], input[type=number], select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    padding: 12px 14px;
+    width: 100%;
+    outline: none;
+    transition: border-color .2s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px 20px;
+    transition: opacity .2s, transform .1s;
+    white-space: nowrap;
+  }
+  .btn:hover { opacity: .88; }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--accent); color: #0d0d10; width: 100%; }
+  .btn-ghost { background: var(--border); color: var(--text); }
+  .btn-danger { background: var(--accent2); color: #fff; }
+  .btn-sm { padding: 8px 14px; font-size: 13px; }
+
+  /* ── ROOM CODE ── */
+  .room-code-display {
+    font-family: var(--font-display);
+    font-size: 52px;
+    letter-spacing: 10px;
+    color: var(--accent);
+    text-align: center;
+    padding: 12px 0;
+    text-shadow: 0 0 30px rgba(245,200,66,.25);
+  }
+  .room-hint { font-size: 13px; color: var(--muted); text-align: center; }
+
+  /* ── PLAYERS LIST ── */
+  .players-list { display: flex; flex-direction: column; gap: 8px; }
+  .player-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .player-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #3ecf8e;
+    flex-shrink: 0;
+  }
+  .player-badge {
+    margin-left: auto;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .badge-host { background: rgba(245,200,66,.15); color: var(--accent); }
+  .badge-t1 { background: rgba(79,172,254,.15); color: var(--team1); }
+  .badge-t2 { background: rgba(247,123,114,.15); color: var(--team2); }
+
+  /* ── TEAM SETUP ── */
+  .teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .team-box {
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid var(--border);
+  }
+  .team-box.t1 { border-color: rgba(79,172,254,.3); background: rgba(79,172,254,.05); }
+  .team-box.t2 { border-color: rgba(247,123,114,.3); background: rgba(247,123,114,.05); }
+  .team-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  .t1 .team-label { color: var(--team1); }
+  .t2 .team-label { color: var(--team2); }
+
+  /* ── SCOREBOARD ── */
+  .score-display {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+  }
+  .score-num {
+    font-family: var(--font-display);
+    font-size: 56px;
+    line-height: 1;
+  }
+  .score-t1 { color: var(--team1); text-align: right; }
+  .score-t2 { color: var(--team2); text-align: left; }
+  .score-vs { color: var(--muted); font-size: 14px; font-weight: 300; }
+  .score-team-name { font-size: 12px; color: var(--muted); }
+  .score-team-name.right { text-align: right; }
+
+  /* ── TIMER ── */
+  .timer-ring-wrap { display: flex; justify-content: center; padding: 8px 0; }
+  svg.timer-svg { transform: rotate(-90deg); }
+  .timer-text-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .timer-num {
+    font-family: var(--font-display);
+    font-size: 64px;
+    line-height: 1;
+    color: var(--text);
+  }
+  .timer-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .timer-container { position: relative; width: 180px; height: 180px; }
+
+  /* ── WORD CARD ── */
+  .word-card {
+    background: linear-gradient(135deg, rgba(245,200,66,.12), rgba(245,200,66,.04));
+    border: 1px solid rgba(245,200,66,.25);
+    border-radius: 18px;
+    padding: 28px 20px;
+    text-align: center;
+  }
+  .current-word {
+    font-family: var(--font-display);
+    font-size: 52px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .word-topic {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  /* ── ROLE BADGE ── */
+  .role-banner {
+    border-radius: 12px;
+    padding: 14px 18px;
+    text-align: center;
+  }
+  .role-explainer { background: rgba(245,200,66,.1); border: 1px solid rgba(245,200,66,.2); }
+  .role-guesser   { background: rgba(79,172,254,.1); border: 1px solid rgba(79,172,254,.2); }
+  .role-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 3px; }
+  .role-explainer .role-title { color: var(--accent); }
+  .role-guesser .role-title { color: var(--team1); }
+  .role-desc { font-size: 14px; color: var(--text); }
+
+  /* ── ACTION BUTTONS GAME ── */
+  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn-correct { background: #2ecc71; color: #fff; }
+  .btn-skip    { background: var(--border); color: var(--muted); }
+
+  /* ── ROUND INFO ── */
+  .round-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--muted);
+    padding: 2px 4px;
+  }
+  .round-info strong { color: var(--text); }
+
+  /* ── WAITING ── */
+  .waiting-dots::after {
+    content: '...';
+    animation: dots 1.2s infinite;
+  }
+  @keyframes dots {
+    0%,20%{content:'.'} 40%,60%{content:'..'} 80%,100%{content:'...'}
+  }
+
+  /* ── RESULTS ── */
+  .results-list { display: flex; flex-direction: column; gap: 8px; }
+  .result-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .result-correct { background: rgba(46,204,113,.1); border: 1px solid rgba(46,204,113,.2); }
+  .result-skip    { background: rgba(107,107,130,.1); border: 1px solid rgba(107,107,130,.15); }
+  .result-icon { font-size: 16px; flex-shrink: 0; }
+
+  /* ── WINNER ── */
+  .winner-banner {
+    text-align: center;
+    padding: 28px 20px;
+    background: linear-gradient(135deg, rgba(245,200,66,.1), rgba(245,200,66,.03));
+    border: 1px solid rgba(245,200,66,.2);
+    border-radius: 18px;
+  }
+  .winner-trophy { font-size: 48px; margin-bottom: 10px; }
+  .winner-name {
+    font-family: var(--font-display);
+    font-size: 40px;
+    letter-spacing: 3px;
+    color: var(--accent);
+  }
+  .winner-sub { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+  /* ── SETTINGS ── */
+  .settings-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .setting-block label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ── CONFIG ── */
+  .config-box {
+    background: rgba(255,255,255,.03);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .config-box code {
+    color: var(--accent);
+    background: rgba(245,200,66,.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .config-box a { color: var(--team1); text-decoration: none; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: transform .3s ease;
+    z-index: 999;
+    pointer-events: none;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+  }
+  .dot-ok { background: #3ecf8e; }
+  .dot-warn { background: var(--accent); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">ALI<span>AS</span></div>
+    <div class="tagline">Play together · Online</div>
+  </header>
+
+  <!-- ── SCREEN: HOME ── -->
+  <div class="screen active" id="screen-home">
+    <div class="card">
+      <div class="card-title">Your Name</div>
+      <input type="text" id="player-name" placeholder="Enter your name" maxlength="20" />
+    </div>
+    <div class="card">
+      <button class="btn btn-primary" onclick="createRoom()" style="margin-bottom:10px">Create Room</button>
+      <div class="divider">or join existing</div>
+      <br>
+      <div class="input-row">
+        <input type="text" id="join-code" placeholder="Room code" maxlength="6" style="text-transform:uppercase;font-family:var(--font-display);font-size:20px;letter-spacing:4px" />
+        <button class="btn btn-ghost" onclick="joinRoom()">Join</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── SCREEN: LOBBY ── -->
+  <div class="screen" id="screen-lobby">
+    <div class="card">
+      <div class="card-title">Room Code</div>
+      <div class="room-code-display" id="room-code-disp">----</div>
+      <div class="room-hint">Share this code with your opponent</div>
+      <br>
+      <button class="btn btn-ghost btn-sm" onclick="copyCode()" style="width:100%">📋 Copy Code</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Players</div>
+      <div class="players-list" id="lobby-players"></div>
+    </div>
+
+    <div class="card" id="lobby-settings" style="display:none">
+      <div class="card-title">Game Settings</div>
+      <!-- Mode selector -->
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button id="mode-btn-rounds" class="btn btn-primary btn-sm" style="flex:1" onclick="selectMode('rounds')">🔄 Rounds</button>
+        <button id="mode-btn-score" class="btn btn-ghost btn-sm" style="flex:1" onclick="selectMode('score')">🎯 First to N</button>
+      </div>
+
+      <!-- Rounds mode -->
+      <div id="mode-rounds-opts" class="settings-row">
+        <div class="setting-block">
+          <label>Rounds</label>
+          <select id="cfg-rounds">
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+          </select>
+        </div>
+        <div class="setting-block">
+          <label>Timer (sec)</label>
+          <select id="cfg-timer">
+            <option value="45">45</option>
+            <option value="60" selected>60</option>
+            <option value="90">90</option>
+            <option value="120">120</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Score mode -->
+      <div id="mode-score-opts" class="settings-row" style="display:none">
+        <div class="setting-block">
+          <label>First to (words)</label>
+          <select id="cfg-target">
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20" selected>20</option>
+            <option value="30">30</option>
+            <option value="40">40</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="setting-block">
+          <label>Timer (sec)</label>
+          <select id="cfg-timer-score">
+            <option value="45">45</option>
+            <option value="60" selected>60</option>
+            <option value="90">90</option>
+            <option value="120">120</option>
+          </select>
+        </div>
+      </div>
+      <br>
+      <div class="setting-block" style="grid-column:1/-1">
+        <label>Difficulty</label>
+        <div id="level-checkboxes" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div id="lobby-btn-wrap">
+      <div id="lobby-waiting" style="text-align:center;color:var(--muted);font-size:14px;padding:8px 0">
+        Waiting for opponent<span class="waiting-dots"></span>
+      </div>
+      <button class="btn btn-primary" id="btn-start-game" onclick="startGame()" style="display:none">Start Game →</button>
+    </div>
+    <button class="btn btn-ghost" onclick="leaveRoom()" style="color:var(--muted)">← Leave</button>
+  </div>
+
+  <!-- ── SCREEN: GAME ── -->
+  <div class="screen" id="screen-game">
+    <div class="round-info">
+      <span id="g-round-label">Round <strong id="g-round">1</strong> of <strong id="g-rounds">3</strong></span>
+      <span id="g-whose-turn"></span>
+    </div>
+    <div id="g-progress-wrap" style="display:none">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px">
+        <span id="g-prog-label1"></span>
+        <span style="color:var(--accent);font-weight:500">First to <span id="g-prog-target"></span></span>
+        <span id="g-prog-label2"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div id="g-prog-bar1" style="height:100%;background:var(--team1);border-radius:3px;transition:width .4s ease;width:0%"></div>
+        </div>
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div id="g-prog-bar2" style="height:100%;background:var(--team2);border-radius:3px;transition:width .4s ease;width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score -->
+    <div class="card" style="padding:16px 20px">
+      <div class="score-display">
+        <div>
+          <div class="score-num score-t1" id="g-score1">0</div>
+          <div class="score-team-name right" id="g-name1">Team 1</div>
+        </div>
+        <div class="score-vs">vs</div>
+        <div>
+          <div class="score-num score-t2" id="g-score2">0</div>
+          <div class="score-team-name" id="g-name2">Team 2</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Role -->
+    <div id="g-role-banner"></div>
+
+    <!-- Timer -->
+    <div class="timer-ring-wrap">
+      <div class="timer-container">
+        <svg class="timer-svg" width="180" height="180" viewBox="0 0 180 180">
+          <circle cx="90" cy="90" r="80" fill="none" stroke="var(--border)" stroke-width="6"/>
+          <circle id="timer-arc" cx="90" cy="90" r="80" fill="none" stroke="var(--accent)"
+            stroke-width="6" stroke-linecap="round"
+            stroke-dasharray="502" stroke-dashoffset="0"
+            style="transition:stroke-dashoffset .5s linear,stroke .5s"/>
+        </svg>
+        <div class="timer-text-wrap">
+          <div class="timer-num" id="g-timer">60</div>
+          <div class="timer-label">seconds</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Word (explainer only) -->
+    <div id="g-word-wrap"></div>
+
+    <!-- Action buttons -->
+    <div id="g-actions"></div>
+
+    <!-- Round results overlay -->
+    <div id="g-results" style="display:none">
+      <div class="card">
+        <div class="card-title">This Round</div>
+        <div class="results-list" id="g-results-list"></div>
+      </div>
+      <button class="btn btn-primary" id="btn-next-round" onclick="nextRound()" style="display:none">Next Round →</button>
+      <div id="g-next-waiting" style="text-align:center;color:var(--muted);font-size:14px;padding:8px 0;display:none">
+        Waiting for host<span class="waiting-dots"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: FINAL ── -->
+  <div class="screen" id="screen-final">
+    <div id="final-winner"></div>
+    <div class="card" style="padding:16px 20px">
+      <div class="score-display">
+        <div>
+          <div class="score-num score-t1" id="f-score1">0</div>
+          <div class="score-team-name right" id="f-name1">Player 1</div>
+        </div>
+        <div class="score-vs">vs</div>
+        <div>
+          <div class="score-num score-t2" id="f-score2">0</div>
+          <div class="score-team-name" id="f-name2">Player 2</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="playAgain()">Play Again</button>
+    <button class="btn btn-ghost" onclick="leaveRoom()" style="color:var(--muted)">← Main Menu</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  WORD BANK
+// ══════════════════════════════════════════════
+const DIFFICULTY_LEVELS = {
+  'Very Easy':  { label: 'Very Easy',  emoji: '🟢', desc: 'Simple everyday words' },
+  'Easy':       { label: 'Easy',       emoji: '🟡', desc: 'Common words' },
+  'Medium':     { label: 'Medium',     emoji: '🟠', desc: 'Requires some thought' },
+  'Hard':       { label: 'Hard',       emoji: '🔴', desc: 'Tricky words' },
+  'Expert':     { label: 'Expert',     emoji: '💀', desc: 'Rare & complex words' },
+};
+
+const WORD_BANK = {
+  'Very Easy': [
+    'Cat','Dog','Sun','Moon','Tree','Fish','Bird','Ball','Book','Door',
+    'Hand','Foot','Eye','Nose','Ear','Leg','Arm','Hat','Bag','Cup',
+    'Bed','Car','Bus','Box','Key','Egg','Milk','Cake','Rain','Snow',
+    'Fire','Wind','Rock','Grass','Leaf','Flower','Apple','Bread','Water','Soup',
+    'Chair','Table','Lamp','Clock','Phone','Shoe','Sock','Coat','Ring','Coin',
+    'Baby','Girl','Boy','Man','Woman','King','Queen','Star','Cloud','River',
+    'Pig','Cow','Hen','Duck','Frog','Bear','Wolf','Deer','Bee','Ant',
+    'Swim','Run','Jump','Eat','Sleep','Sing','Dance','Draw','Read','Write',
+    'Hot','Cold','Big','Small','Fast','Slow','Old','New','Good','Bad',
+    'House','School','Park','Shop','Farm','Road','Bridge','Lake','Hill','Beach',
+    'Red','Blue','Green','Yellow','White','Black','Pink','Gold','Round','Flat',
+    'One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten',
+    'Bus stop','Ice cream','Football','Lunchbox','Sunflower','Raincoat','Bluebird','Snowball','Fireplace','Doorbell',
+    'Smile','Laugh','Cry','Shout','Whisper','Hug','Kiss','Wave','Clap','Wink',
+    'Fork','Spoon','Knife','Plate','Bowl','Glass','Bottle','Jar','Pot','Pan',
+    'Tiger','Lion','Monkey','Rabbit','Horse','Sheep','Goat','Camel','Panda','Koala',
+    'Pencil','Ruler','Eraser','Notebook','Crayon','Scissors','Glue','Stamp','Sticker','Ribbon',
+    'Pizza','Burger','Sandwich','Salad','Cookie','Candy','Lemon','Orange','Grape','Banana',
+    'Piano','Guitar','Drum','Flute','Violin','Bell','Horn','Harp','Trumpet','Microphone',
+  ,'Fly','Sky','Sea','Ice','Oil','Mud','Hay','Ink','Fur','Fin','Owl','Fox','Bat','Cub','Lamb','Foal','Colt','Pup','Kit','Fawn','Jam','Pie','Tea','Rum','Gin','Ale','Bun','Bap','Dip','Sip','Tap','Map','Cap','Gap','Lap','Nap','Rap','Sap','Tap','Yap','Drip','Grip','Skip','Slip','Trip','Chip','Ship','Whip','Clip','Flip','Pond','Bond','Fond','Wand','Land','Sand','Band','Hand','Grand','Brand','Shelf','Wolf','Golf','Self','Elf','Shelf','Belt','Felt','Melt','Welt','Brick','Trick','Click','Flick','Quick','Slick','Thick','Wick','Stick','Prick','Bread','Dread','Spread','Thread','Ahead','Bead','Dead','Head','Lead','Read','Train','Brain','Chain','Drain','Grain','Plain','Spain','Sprain','Strain','Rain','Stamp','Lamp','Camp','Damp','Ramp','Vamp','Clamp','Cramp','Tramp','Champ','Nurse','Horse','Purse','Worse','Force','Morse','Curse','Verse','Terse','Hearse','Cloth','Broth','Moth','Sloth','Froth','Tooth','Booth','Sooth','Youth','Truth','Swing','Ring','King','Sing','Bring','Cling','Fling','Sling','Spring','String','Chair','Pair','Stair','Hair','Fair','Flair','Repair','Despair','Affair','Prayer','Comb','Bomb','Tomb','Womb','Dome','Home','Foam','Roam','Poem','Nome','Light','Night','Right','Sight','Fight','Might','Tight','Blight','Flight','Plight','Shout','Trout','Sprout','Scout','About','Doubt','Stout','Clout','Snout','Pout','Nurse','Purse','Verse','Worse','Terse','Curse','Force','Horse','Source','Course','Wrist','Fist','List','Mist','Twist','Gist','Grist','Hiss','Bliss','Miss','Grape','Shape','Tape','Cape','Drape','Escape','Gape','Landscape','Scrape','Scape','Flame','Game','Name','Frame','Blame','Claim','Shame','Tame','Fame','Dame','Brush','Crush','Flush','Gush','Hush','Lush','Plush','Rush','Slush','Thrush','Crane','Lane','Mane','Plane','Cane','Bane','Sane','Vane','Wane','Pane','Shelf','Elf','Self','Spell','Bell','Cell','Dell','Fell','Hell','Sell'],
+
+  'Easy': [
+    'Airport','Balloon','Camera','Diamond','Engine','Forest','Garden','Harbor','Island','Jacket',
+    'Kitchen','Library','Market','Needle','Oven','Pillow','Quarter','Rocket','Shadow','Tunnel',
+    'Umbrella','Village','Window','Yellow','Zipper','Anchor','Basket','Candle','Desert','Envelope',
+    'Fountain','Glacier','Hammer','Iceberg','Jungle','Kettle','Lantern','Mirror','Napkin','Oyster',
+    'Parrot','Quilt','Rainbow','Sailor','Tablet','Uniform','Vampire','Wallet','Xmas','Yogi',
+    'Compass','Blanket','Cabinet','Dolphin','Feather','Goblin','Harvest','Invoice','Juggle','Kingdom',
+    'Lobster','Mansion','Necklace','Orchard','Pilgrim','Quarrel','Rescue','Suitcase','Trophy','Unicorn',
+    'Volcano','Warrior','Xylophone','Yardstick','Zebra','Acrobat','Blizzard','Carnival','Decade','Eclipse',
+    'Fable','Gazebo','Hatchet','Igloo','Jigsaw','Kitten','Lagoon','Meadow','Nomad','Oasis',
+    'Paddle','Quest','Riddle','Scarecrow','Telescope','Urchin','Verdict','Walrus','Yacht','Zeppelin',
+    'Astronaut','Backpack','Campfire','Doughnut','Escalator','Firework','Greenhouse','Hammock','Icecap','Jackpot',
+    'Kayak','Lighthouse','Magician','Notebook','Octopus','Penguin','Quicksand','Raindrop','Snowflake','Thunderstorm',
+    'Upstairs','Vineyard','Waterfall','Xenon','Yogurt','Zucchini','Alligator','Butterfly','Caterpillar','Dragonfly',
+    'Earthworm','Firefly','Grasshopper','Hedgehog','Inchworm','Jellyfish','Kangaroo','Ladybug','Millipede','Nightingale',
+    'Armchair','Bathtub','Chandelier','Doorstep','Fireplace','Hallway','Wardrobe','Staircase','Rooftop','Balcony',
+    'Archery','Baseball','Cricket','Cycling','Fencing','Gymnastics','Handball','Lacrosse','Rowing','Surfing',
+    'Autumn','Spring','Summer','Winter','Sunrise','Sunset','Midnight','Midday','Twilight','Dawn',
+    'Cobbler','Dentist','Farmer','Jockey','Mechanic','Painter','Plumber','Ranger','Sailor','Weaver',
+    'Cactus','Coconut','Mango','Papaya','Pineapple','Pomegranate','Raspberry','Strawberry','Tangerine','Watermelon',
+    'Cement','Copper','Crystal','Fabric','Gravel','Marble','Plastic','Rubber','Velvet','Wool',
+  ,'Cobweb','Icicle','Pinecone','Seashell','Driftwood','Quicksand','Rainfall','Sunbeam','Moonlight','Starfish','Beehive','Anthill','Foxhole','Rabbit hole','Beaver dam','Spiderweb','Honeycomb','Termite mound','Nest','Burrow','Binoculars','Periscope','Kaleidoscope','Microscope','Magnifier','Stethoscope','Barometer','Thermometer','Altimeter','Odometer','Sombrero','Turban','Beret','Bowler','Tiara','Fedora','Bonnet','Beanie','Visor','Helmet','Gazelle','Cheetah','Leopard','Jaguar','Panther','Cougar','Puma','Lynx','Bobcat','Ocelot','Toucan','Pelican','Flamingo','Peacock','Ostrich','Emu','Kiwi','Cassowary','Roadrunner','Hornbill','Cinnamon','Turmeric','Paprika','Saffron','Cardamom','Cloves','Nutmeg','Cumin','Oregano','Basil','Hammock','Tepee','Igloo','Caravan','Cottage','Chalet','Bungalow','Penthouse','Treehouse','Houseboat','Catapult','Trebuchet','Crossbow','Slingshot','Boomerang','Lasso','Harpoon','Trident','Javelin','Quarterstaff','Accordion','Banjo','Cello','Didgeridoo','Erhu','Sitar','Ukulele','Zither','Bagpipes','Mandolin','Algebra','Calculus','Geometry','Trigonometry','Statistics','Probability','Topology','Cryptography','Combinatorics','Arithmetic','Monsoon','Typhoon','Hurricane','Tornado','Cyclone','Blizzard','Drought','Hailstorm','Sandstorm','Avalanche','Aqueduct','Catacomb','Colosseum','Pyramid','Stonehenge','Parthenon','Pantheon','Acropolis','Obelisk','Ziggurat','Espresso','Cappuccino','Americano','Macchiato','Latte','Mocha','Frappe','Affogato','Cortado','Ristretto','Bonsai','Topiary','Ikebana','Terrarium','Vivarium','Aquarium','Paludarium','Riparium','Orchidarium','Herbarium','Quarterback','Linebacker','Midfielder','Goalkeeper','Shortstop','Outfielder','Halfback','Fullback','Winger','Striker','Photosynthesis','Germination','Pollination','Hibernation','Migration','Metamorphosis','Camouflage','Symbiosis','Predation','Decomposition','Parliament','Congress','Senate','Cabinet','Embassy','Consulate','Tribunal','Legislature','Judiciary','Municipality','Saxophone','Clarinet','Oboe','Bassoon','Trombone','Tuba','Cornet','Euphonium','Flugelhorn','Piccolo','Quicksilver','Tungsten','Platinum','Titanium','Cobalt','Chromium','Manganese','Molybdenum','Vanadium','Zirconium'],
+
+  'Medium': [
+    'Abolish','Barter','Catalyst','Debris','Eloquent','Façade','Gauntlet','Havoc','Impasse','Jargon',
+    'Keynote','Liaison','Mnemonic','Nuance','Ominous','Paradigm','Quorum','Rhetoric','Scrutiny','Tactic',
+    'Ulterior','Vague','Wrath','Xenophobia','Yearning','Zealous','Abrupt','Benign','Cynical','Daunting',
+    'Eccentric','Fervent','Gloomy','Hostile','Ironic','Jovial','Keen','Lenient','Morbid','Naive',
+    'Obscure','Pensive','Quirky','Resilient','Sarcastic','Tactful','Upbeat','Vivid','Wistful','Zealot',
+    'Algorithm','Blockchain','Carousel','Dashboard','Encrypted','Firmware','Gigabyte','Hardware','Interface','Javascript',
+    'Kernel','Latency','Metadata','Namespace','Offshore','Protocol','Quantum','Renderer','Syntax','Template',
+    'Acupuncture','Biofeedback','Cardiology','Dermatology','Epidemiology','Forensics','Gastronomy','Hematology','Immunology','Jurisprudence',
+    'Labyrinth','Manifesto','Nostalgia','Oligarchy','Pandemic','Quarantine','Referendum','Sabotage','Terrorism','Utopia',
+    'Abysmal','Benevolent','Capricious','Desolate','Ephemeral','Frugal','Grandiose','Hubris','Insidious','Jeopardize',
+    'Kinetic','Lethargic','Melancholy','Nonchalant','Obsolete','Pompous','Quaint','Rampant','Stoic','Turbulent',
+    'Alchemy','Botany','Cartography','Diplomacy','Ethnography','Folklore','Genealogy','Heraldry','Ideology','Journalism',
+    'Mythology','Neurology','Oceanography','Philanthropy','Rhetoric','Sociology','Theology','Urbanization','Virology','Zoology',
+    'Acrobatics','Badminton','Canoeing','Decathlon','Equestrian','Falconry','Gliding','Hurdling','Javelin','Kickboxing',
+    'Luge','Marathon','Netball','Orienteering','Pentathlon','Rappelling','Skydiving','Taekwondo','Triathlon','Weightlifting',
+    'Archipelago','Bayou','Caldera','Delta','Escarpment','Fjord','Gorge','Highland','Isthmus','Karst',
+    'Lagoon','Mesa','Nunatak','Outback','Peninsula','Ravine','Savanna','Tundra','Upland','Valley',
+    'Abalone','Barracuda','Cuttlefish','Dugong','Eel','Flounder','Grouper','Halibut','Iguanodon','Jaguar',
+    'Krill','Lemur','Manatee','Narwhal','Ocelot','Platypus','Quetzal','Rattlesnake','Salamander','Tapir',
+    'Baroque','Cubism','Dada','Expressionism','Futurism','Gothic','Humanism','Impressionism','Jazz','Kinetic',
+  ,'Acquiesce','Belligerent','Circumspect','Dissonance','Elucidate','Fabricate','Gesticulate','Hypothesize','Incriminate','Juxtapose','Kowtow','Lacerate','Magnanimous','Nefarious','Obsequious','Prevaricate','Quintessential','Ratiocinate','Speculate','Truncate','Unambiguous','Vacillate','Watershed','Xenophile','Yeoman','Zeitgeist','Accolade','Belittle','Circumvent','Debilitate','Embezzle','Facilitate','Galvanize','Hamstring','Incapacitate','Jeopardize','Lambaste','Marginalize','Neutralize','Optimize','Perpetuate','Rationalize','Scrutinize','Trivialize','Undermine','Validate','Weaponize','Exemplify','Codify','Demystify','Stratosphere','Mesosphere','Thermosphere','Exosphere','Ionosphere','Troposphere','Lithosphere','Hydrosphere','Biosphere','Magnetosphere','Pandemic','Endemic','Epidemic','Outbreak','Quarantine','Inoculation','Vaccination','Immunity','Antibody','Pathogen','Renaissance','Reformation','Enlightenment','Revolution','Industrial Age','Digital Age','Bronze Age','Iron Age','Space Age','Information Age','Bureaucracy','Autocracy','Meritocracy','Theocracy','Technocracy','Plutocracy','Gerontocracy','Kleptocracy','Anarchy','Federalism','Inflation','Deflation','Recession','Depression','Stagflation','Hyperinflation','Austerity','Quantitative easing','Fiscal policy','Monetary policy','Arbitrage','Derivatives','Dividends','Equities','Hedge fund','Liquidity','Portfolio','Securities','Volatility','Yield curve','Cortex','Cerebellum','Hippocampus','Amygdala','Prefrontal','Synapse','Neurotransmitter','Dopamine','Serotonin','Cortisol','Existentialism','Phenomenology','Structuralism','Postmodernism','Constructivism','Determinism','Consequentialism','Deontology','Virtue ethics','Utilitarianism','Biometric','Cryptography','Cybersecurity','Decentralized','Distributed','Encryption','Firewall','Malware','Phishing','Ransomware','Archipelago','Atoll','Peninsula','Fjord','Estuary','Delta','Tributary','Watershed','Aquifer','Glacier','Mercantilism','Capitalism','Socialism','Communism','Feudalism','Colonialism','Imperialism','Globalism','Nationalism','Liberalism','Apoptosis','Mitosis','Meiosis','Cytoplasm','Ribosome','Mitochondria','Chromosome','Telomere','Genome','Proteome','Terracotta','Fresco','Mosaic','Bas-relief','Trompe loeil','Chiaroscuro','Sfumato','Pointillism','Fauvism','Surrealism','Permafrost','Taiga','Chaparral','Wetland','Mangrove','Rainforest','Steppe','Pampa','Veld','Prairie','Acoustics','Aerodynamics','Biomechanics','Electromagnetism','Fluid dynamics','Optics','Quantum mechanics','Thermodynamics','Kinematics','Statics'],
+
+  'Hard': [
+    'Abstemious','Badinage','Cachinnate','Daedal','Ebullient','Feckless','Garrulous','Heuristic','Ineffable','Jejune',
+    'Knell','Loquacious','Mendacious','Nefarious','Obstreperous','Perfidious','Querulous','Recalcitrant','Sycophantic','Tendentious',
+    'Umbrageous','Vicissitude','Wanton','Xenial','Yore','Zealotry','Abscond','Bifurcate','Capitulate','Dissemble',
+    'Equivocate','Fluctuate','Gesticulate','Humiliate','Interpolate','Juxtapose','Lacerate','Mitigate','Nullify','Obfuscate',
+    'Perpetuate','Quantify','Ruminate','Sequester','Taciturn','Undermine','Venerate','Wheedle','Extrapolate','Corroborate',
+    'Abstruse','Byzantine','Casuistry','Dialectic','Empiricism','Fatalism','Gnosticism','Hedonism','Idealism','Jansenism',
+    'Kantianism','Logomachy','Metaphysics','Nihilism','Ontology','Pragmatism','Quietism','Rationalism','Solipsism','Teleology',
+    'Acrimony','Bombast','Calumny','Diatribe','Encomium','Filibuster','Harangue','Invective','Lampoon','Malediction',
+    'Obloquy','Panegyric','Philippic','Riposte','Satire','Tirade','Vituperation','Polemic','Sophistry','Innuendo',
+    'Apocryphal','Bifurcated','Crepuscular','Diaphanous','Ephemeral','Fugacious','Gossamer','Hebdomadal','Incorporeal','Lambent',
+    'Mercurial','Nebulous','Opalescent','Penumbra','Resplendent','Scintilla','Tenebrous','Umbral','Vestigial','Waning',
+    'Abiogenesis','Chronobiology','Cytogenetics','Dendrochemistry','Endocrinology','Fermentation','Geomagnetics','Histopathology','Immunogenetics','Jurimetrics',
+    'Kinesthesia','Limnology','Morphogenesis','Neuropathology','Ornithology','Paleoclimatology','Radiobiology','Seismography','Thermodynamics','Volcanology',
+    'Aboulia','Catatonia','Dysphoria','Echolalia','Fugue','Hypochondria','Ideation','Kleptomania','Logorrhea','Mythomania',
+    'Narcissism','Obsession','Paranoia','Rumination','Soliloquy','Transference','Xenophobia','Abreaction','Cathexis','Neurosis',
+    'Akkadian','Babylonian','Cuneiform','Demotic','Esperanto','Farsi','Gaelic','Hieratic','Igbo','Javanese',
+    'Kazakh','Latin','Mandarin','Nahuatl','Occitan','Punjabi','Quechua','Sanskrit','Tamil','Uyghur',
+    'Arpeggiate','Cadenza','Dissonance','Enharmonic','Fugue','Glissando','Harmonics','Improvisation','Leitmotif','Melisma',
+    'Nocturne','Ostinato','Pentatonic','Rhapsody','Staccato','Syncopation','Timbre','Vibrato','Counterpoint','Modulation',
+    'Adagio','Allegretto','Andante','Bravura','Capriccio','Diminuendo','Falsetto','Fortissimo','Pianissimo','Rubato',
+  ,'Abrogation','Circumlocution','Conflation','Disintermediation','Epistemic','Fallibilism','Hermeneutic','Isomorphism','Juxtaposition','Lacunae','Morpheme','Nominalism','Ontogenesis','Palimpsest','Quiddity','Reductionism','Semiotics','Teleological','Univocal','Weltbild','Agnotology','Bricoleur','Catharsis','Diegesis','Ekphrasis','Fabula','Genealogy','Heteroglossia','Intertextuality','Jouissance','Kitsch','Liminality','Mise-en-scène','Narratology','Ostranenie','Polyphony','Rhizome','Simulacra','Tropology','Verisimilitude','Anthropocene','Biopolitics','Chronotope','Deterritorialization','Epigenetics','Fordism','Governmentality','Hegemony','Intersectionality','Jouissance','Logocentrism','Metabolic rift','Necropolitics','Ontological turn','Postcolonialism','Queer theory','Reflexivity','Subaltern','Thanatopolitics','Undercommons','Acephalous','Bifurcation','Crepitation','Dehiscence','Effluvium','Festination','Glabrous','Horripilation','Intumescence','Keratosis','Lassitude','Marasmus','Nociception','Orthostasis','Paresthesia','Rhabdomyolysis','Synesthesia','Tachycardia','Vesiculation','Xerostomia','Adiaphorism','Concupiscence','Docetism','Emanationism','Fideism','Gnosticism','Hesychasm','Iconoclasm','Kenosis','Logos','Modalism','Neoplatonism','Occasionalism','Pelagianism','Quietism','Reichian','Subordinationism','Theurgy','Universalism','Voluntarism','Ablaut','Affricate','Bilabial','Consonant cluster','Digraph','Elision','Fricative','Glottal stop','Hiatus','Infixation','Juncture','Koiné','Lexeme','Morphosyntax','Nasalization','Obstruent','Palatal','Rhotic','Suprasegmental','Trigraph','Autochthonous','Bricolage','Cargo cult','Diaspora','Endogamy','Fictive kinship','Gerontocracy','Heterarchy','Inalienable possession','Joking relationship','Kinship terminology','Levitate','Moiety','Neolocal','Parallel cousin','Segmentary lineage','Totemism','Unilineal','Virilocal','Witchcraft accusation','Anaplerosis','Catabolism','Chemiosmosis','Deamination','Epigenomics','Glycolysis','Homeobox','Intracellular signaling','Krebs cycle','Lipogenesis','Meiotic drive','Nucleosome','Operon','Phosphorylation','Ribozyme','Splicing','Transduction','Ubiquitination','Vesicle trafficking','Xenobiosis','Anisotropy','Bremsstrahlung','Chirality','Decoherence','Eigenvalue','Fermionic','Gauge invariance','Hadron','Isospin','Kaon','Lepton','Muon','Nucleon','Operator','Pauli exclusion','Quantum entanglement','Renormalization','Spin-orbit coupling','Tachyon','Uncertainty principle','Accretion disk','Chandrasekhar limit','Dark energy','Event horizon','Frame dragging','Gravitational lensing','Hubble constant','Inflation theory','Jeans instability','Kuiper belt','Lagrange point','Magnetar','Neutron star','Oort cloud','Parallax','Quasar','Redshift','Schwarzschild radius','Termination shock','Van Allen belt'],
+
+  'Expert': [
+    'Abscission','Borborygmus','Callipygian','Defenestrate','Eleemosynary','Floccinaucinihilipilification','Galimatias','Hirundine','Iatrogenic','Jentacular',
+    'Kakorrhaphiophobia','Labyrinthine','Malapropos','Nugatory','Objurgation','Plenipotentiary','Quisquilian','Recrudescent','Sesquipedalian','Tergiversation',
+    'Ultracrepidarian','Velleity','Wayzgoose','Xenodochial','Ylem','Zugzwang','Abecedarian','Battology','Crepehanger','Deipnosophist',
+    'Erythrophobia','Filibeg','Gongoozler','Hippopotomonstrosesquippedaliophobia','Inaniloquent','Jocoserious','Kerfuffle','Logodaedaly','Mumpsimus','Noctambulism',
+    'Opsimath','Persiflage','Quiddity','Resistentialism','Sialoquent','Tyrotoxism','Ultracrepidarian','Vigesimal','Xenoglossy','Yottabyte',
+    'Abderian','Bloviate','Cacoethes','Dactylonomy','Exsanguinate','Fabulist','Gambrinous','Hamartia','Iamb','Jocoserious',
+    'Katabasis','Lethologica','Meraki','Nepenthe','Ostranenie','Pareidolia','Qualia','Recusant','Sonder','Trouvaille',
+    'Alexithymia','Apophenia','Bricolage','Clinomania','Dysania','Eigenvalue','Flaneur','Gegenschein','Hiraeth','Iktsuarpok',
+    'Jayus','Kenopsia','Lacuna','Mamihlapinatapai','Nemophilist','Onism','Petrichor','Querencia','Raconteur','Saudade',
+    'Toska','Ukiyo','Vellichor','Waldeinsamkeit','Xenodochial','Yugen','Zemblanity','Abience','Cachexy','Diglossia',
+    'Eschatology','Fenestration','Gerontocracy','Heterodoxy','Iconoclasm','Janissary','Kenoticism','Limerence','Meliorism','Neologism',
+    'Orthogonality','Parousia','Quidditism','Recidivism','Sophrosyne','Threnody','Ullage','Verisimilitude','Weltanschauung','Xenocracy',
+    'Apocatastasis','Boustrophedon','Catachresis','Diegesis','Ekphrasis','Fideism','Glossolalia','Hermeneutics','Isagoge','Kenosis',
+    'Logocracy','Mythopoeia','Noosphere','Perichoresis','Theophany','Palingenesis','Enantiodromia','Hierophany','Koinonia','Liminality',
+    'Apophasis','Cataphasis','Doxology','Enchiridion','Filioque','Gnoseology','Henology','Impassibility','Kenoticism','Logotherapy',
+    'Acrasial','Bathysphere','Ctenophore','Dinoflagellate','Echinoderm','Foraminifera','Gorgonian','Halophyte','Ichthyosaur','Jorunna',
+    'Karyotype','Lamprey','Myxomycete','Nematocyst','Opisthosoma','Polychaete','Radiolarian','Siphonophore','Tardigrade','Xenobiotic',
+    'Abiotic','Biome','Cladistics','Deme','Ecotone','Fitness','Genotype','Haplotype','Intron','Junk DNA',
+    'Karyogram','Linkage','Meiosis','Nitrification','Oogamy','Phenotype','Recombination','Sympatric','Trophic','Zygosity',
+    'Acicular','Botryoidal','Cleavage','Drusy','Euhedral','Foliation','Graben','Horst','Isoclinal','Jointing',
+  ,'Acosmism','Bradyphrenia','Clinamen','Dromology','Essentialism','Finitude','Geophilosophy','Hapax legomenon','Irenicism','Jouissance','Kenopsia','Logomachy','Mitsein','Noumenon','Oneironautics','Parousia','Quidditism','Reenchantment','Sinthome','Thrownness','Unconcealment','Vorhanden','Weltanschauung','Xenochrony','Ylem','Zuhanden','Absconditus','Bildungsroman','Catachresis','Deferentialism','Emplotment','Fictocriticism','Gynophobia','Heuremeneutics','Idiolect','Jargonautics','Kairological','Lacanian mirror stage','Metatextuality','Negative capability','Objet petit a','Parapraxis','Queer futurity','Ressentiment','Supplementarity','Thanatography','Unheimlich','Virtuality','Xenotopia','Zoe','Algedonic','Biorhythm','Circadian entrainment','Disinhibition','Entorhinal cortex','Fear conditioning','Gamma oscillation','Hebbian learning','Interoception','Jamais vu','Kinesthesia','Limbic resonance','Mirror neuron','Neuroplasticity','Olfactory bulb','Predictive coding','Qualia','Representational momentum','Somatosensory cortex','Thalamic gating','Anhedonia','Bradyphrenia','Coenesthesia','Derealization','Echolalia','Folie à deux','Ganser syndrome','Hypermnesia','Ideomotor effect','Jerusalem syndrome','Koro','Latah','Mal de débarquement','Nocebo effect','Othello syndrome','Paris syndrome','Reduplicative paramnesia','Stendhal syndrome','Taijin kyofusho','Windigo psychosis','Apophasis','Catachresis','Diegesis','Epanalepsis','Felt sense','Gesamtkunstwerk','Hapax legomenon','Isocolon','Kenning','Litotes','Merism','Nominalization','Oxymoron','Paralipsis','Quibbling','Rheme','Syllepsis','Tmesis','Understatement','Zeugma','Abiogenesis','Boltzmann brain','Cosmic inflation','Degeneracy pressure','Ekpyrotic universe','False vacuum','Gravitino','Heat death','Inflationary multiverse','Jeans collapse','Kardashev scale','Laniakea','Matrioshka brain','Naked singularity','Observer selection','Penrose process','Quantum immortality','Rindler horizon','Schwarzschild wormhole','Tegmark multiverse','Analemma','Barycenter','Chromatic aberration','Declination','Ephemeris','Faculae','Granulation','Helioseismology','Inclination','Jansky','Kelvin–Helmholtz instability','Libration','Magnetopause','Nutation','Oblateness','Precession','Quadrature','Retrograde motion','Syzygy','Terminator line','Alexipharmic','Borborygmus','Callipygous','Defervescence','Erythrocyte sedimentation','Fasciculation','Glomerulonephritis','Hematochezia','Intussusception','Jaundice','Kernicterus','Lymphadenopathy','Meconium','Nystagmus','Onycholysis','Petechiae','Rhinorrhea','Scleroderma','Tachypnea','Urticaria','Anisogamy','Batesian mimicry','Cladogenesis','Disruptive selection','Evo-devo','Fitness landscape','Genetic drift','Haploinsufficiency','Inclusive fitness','Kin selection','Lateral gene transfer','Müllerian mimicry','Neutral theory','Orthologous','Pleiotropy','Reciprocal altruism','Sexual selection','Transposable element','Unit of selection','Vicariance','Accreted terrane','Bouguer anomaly','Cratonic stability','Decollement','Eustasy','Forearc basin','Graben','Horst','Isostasy','Jökulhlaup','Keystone fault','Listric fault','Moho discontinuity','Nappe','Obduction','Pediment','Rheid','Suture zone','Turbidite','Unconformity'],
+};
+
+const ALL_LEVELS = Object.keys(WORD_BANK);
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let sbClient = null;
+let roomId = null;
+let myName = '';
+let isHost = false;
+let subscription = null;
+let timerInterval = null;
+let gameState = null;
+let wordQueue = [];
+let roundWords = []; // words used this round with result
+let timerDuration = 60;
+
+// ══════════════════════════════════════════════
+//  SUPABASE CONFIG
+// ══════════════════════════════════════════════
+// saveConfig removed
+
+function initSupabase(url, key) {
+  sbClient = window.supabase.createClient(url, key, { realtime: { params: { eventsPerSecond: 10 } } });
+}
+
+// clearConfig removed
+
+// ══════════════════════════════════════════════
+//  SCREENS
+// ══════════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+//  ROOM MANAGEMENT
+// ══════════════════════════════════════════════
+function genCode() {
+  return Math.random().toString(36).substring(2,8).toUpperCase();
+}
+
+function selectMode(mode) {
+  const isScore = mode === 'score';
+  document.getElementById('mode-btn-rounds').className = isScore ? 'btn btn-ghost btn-sm' : 'btn btn-primary btn-sm';
+  document.getElementById('mode-btn-score').className  = isScore ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+  document.getElementById('mode-rounds-opts').style.display = isScore ? 'none' : 'grid';
+  document.getElementById('mode-score-opts').style.display  = isScore ? 'grid' : 'none';
+}
+
+async function createRoom() {
+  myName = document.getElementById('player-name').value.trim();
+  if (!myName) { toast('Enter your name first'); return; }
+  isHost = true;
+  roomId = genCode();
+  toast('Creating room...');
+
+  const state = {
+    phase: 'lobby',
+    host: myName,
+    players: [{ name: myName, team: 1 }],
+    score: [0, 0],
+    round: 1,
+    totalRounds: 3,
+    timerSec: 60,
+    topics: ALL_TOPICS.slice(0, 4),
+    currentWord: null,
+    currentTopic: null,
+    explainerIndex: 0,
+    roundResults: [],
+    wordQueue: [],
+    timerStart: null,
+  };
+
+  try {
+    const { error } = await sbClient.from('alias_rooms').insert({ id: roomId, state });
+    if (error) { toast('DB error: ' + error.message); console.error(error); return; }
+  } catch(e) { toast('Network error: ' + e.message); console.error(e); return; }
+  subscribeRoom();
+  document.getElementById('room-code-disp').textContent = roomId;
+  buildTopicCheckboxes();
+  document.getElementById('lobby-settings').style.display = 'block';
+  showScreen('lobby');
+  renderLobby(state);
+}
+
+async function joinRoom() {
+  myName = document.getElementById('player-name').value.trim();
+  if (!myName) { toast('Enter your name first'); return; }
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (!code) { toast('Enter a room code'); return; }
+
+  let data, error;
+  try {
+    const res = await sbClient.from('alias_rooms').select('state').eq('id', code).single();
+    data = res.data; error = res.error;
+  } catch(e) { toast('Network error: ' + e.message); return; }
+  if (error || !data) { toast('Room not found: ' + (error?.message||'')); return; }
+
+  roomId = code;
+  isHost = false;
+  const state = data.state;
+  if (state.players.find(p => p.name === myName)) { toast('Name already taken'); return; }
+  state.players.push({ name: myName, team: 2 });
+  await updateState(state);
+  subscribeRoom();
+  document.getElementById('room-code-disp').textContent = roomId;
+  showScreen('lobby');
+  renderLobby(state);
+}
+
+async function updateState(state) {
+  state.updated_at = new Date().toISOString();
+  await sbClient.from('alias_rooms').update({ state }).eq('id', roomId);
+}
+
+function subscribeRoom() {
+  subscription = sbClient
+    .channel('room_' + roomId)
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'alias_rooms',
+      filter: `id=eq.${roomId}`
+    }, payload => {
+      handleState(payload.new.state);
+    })
+    .subscribe();
+}
+
+function handleState(state) {
+  gameState = state;
+  if (state.phase === 'lobby') renderLobby(state);
+  else if (state.phase === 'game') renderGame(state);
+  else if (state.phase === 'round_end') renderRoundEnd(state);
+  else if (state.phase === 'final') renderFinal(state);
+}
+
+async function leaveRoom() {
+  if (subscription) sbClient.removeChannel(subscription);
+  if (timerInterval) clearInterval(timerInterval);
+  roomId = null; isHost = false; gameState = null;
+  showScreen('home');
+}
+
+// ══════════════════════════════════════════════
+//  LOBBY
+// ══════════════════════════════════════════════
+function buildTopicCheckboxes() {
+  const wrap = document.getElementById('level-checkboxes');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  ALL_LEVELS.forEach(lvl => {
+    const info = DIFFICULTY_LEVELS[lvl];
+    const id = 'level_' + lvl.replace(' ','_');
+    const checked = ['Very Easy','Easy','Medium'].includes(lvl) ? 'checked' : '';
+    wrap.innerHTML += `
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 10px;border-radius:8px;border:1px solid var(--border);transition:border-color .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" id="${id}" ${checked} style="accent-color:var(--accent);width:16px;height:16px">
+        <span style="font-size:18px">${info.emoji}</span>
+        <span style="flex:1">
+          <span style="font-size:14px;font-weight:500;color:var(--text)">${info.label}</span>
+          <span style="font-size:12px;color:var(--muted);margin-left:8px">${info.desc}</span>
+        </span>
+      </label>`;
+  });
+}
+
+function renderLobby(state) {
+  const list = document.getElementById('lobby-players');
+  list.innerHTML = '';
+  state.players.forEach(p => {
+    const badge = p.name === state.host
+      ? `<span class="player-badge badge-host">Host</span>`
+      : p.team === 1
+        ? `<span class="player-badge badge-t1">Blue</span>`
+        : `<span class="player-badge badge-t2">Red</span>`;
+    list.innerHTML += `<div class="player-item"><div class="player-dot"></div>${p.name}${badge}</div>`;
+  });
+
+  const canStart = state.players.length >= 2;
+  document.getElementById('lobby-waiting').style.display = canStart ? 'none' : 'block';
+  document.getElementById('btn-start-game').style.display = (canStart && isHost) ? 'block' : 'none';
+}
+
+async function startGame() {
+  const mode = document.getElementById('mode-btn-score').classList.contains('btn-primary') ? 'score' : 'rounds';
+  const rounds = parseInt(document.getElementById('cfg-rounds').value);
+  const timer = mode === 'score'
+    ? parseInt(document.getElementById('cfg-timer-score').value)
+    : parseInt(document.getElementById('cfg-timer').value);
+  const targetScore = mode === 'score' ? parseInt(document.getElementById('cfg-target').value) : 0;
+  const topics = ALL_LEVELS.filter(lvl => document.getElementById('level_' + lvl.replace(' ','_'))?.checked);
+  if (topics.length === 0) { toast('Pick at least one difficulty level'); return; }
+
+  timerDuration = timer;
+  const state = gameState;
+  state.gameMode = mode;
+  state.targetScore = targetScore;
+  state.totalRounds = rounds;
+  state.timerSec = timer;
+  state.topics = topics;
+  state.phase = 'game';
+  state.round = 1;
+  state.score = [0, 0];
+  state.explainerIndex = 0;
+  state.roundResults = [];
+  state.wordQueue = buildWordQueue(topics);
+  state.currentWord = state.wordQueue.shift();
+  state.currentTopic = getTopicForWord(state.currentWord, topics);
+  state.timerStart = Date.now();
+  await updateState(state);
+}
+
+// ══════════════════════════════════════════════
+//  GAME RENDERING
+// ══════════════════════════════════════════════
+function getMyTeam(state) {
+  const p = state.players.find(p => p.name === myName);
+  return p ? p.team : 0;
+}
+
+function getExplainer(state) {
+  return state.players[state.explainerIndex % state.players.length];
+}
+
+function amExplainer(state) {
+  return getExplainer(state).name === myName;
+}
+
+function renderGame(state) {
+  showScreen('game');
+  gameState = state;
+  timerDuration = state.timerSec;
+
+  document.getElementById('g-round').textContent = state.round;
+  document.getElementById('g-rounds').textContent = state.totalRounds;
+  document.getElementById('g-score1').textContent = state.score[0];
+  document.getElementById('g-score2').textContent = state.score[1];
+
+  const exp = getExplainer(state);
+  const myTeam = getMyTeam(state);
+  const p1name = state.players.find(p=>p.team===1)?.name || 'Blue';
+  const p2name = state.players.find(p=>p.team===2)?.name || 'Red';
+  document.getElementById('g-name1').textContent = p1name;
+  document.getElementById('g-name2').textContent = p2name;
+  document.getElementById('g-whose-turn').textContent = `${exp.name} explains`;
+
+  // Mode-specific UI
+  const isScoreMode = state.gameMode === 'score';
+  const progressWrap = document.getElementById('g-progress-wrap');
+  const roundLabel = document.getElementById('g-round-label');
+  if (isScoreMode) {
+    progressWrap.style.display = 'block';
+    roundLabel.style.display = 'none';
+    const target = state.targetScore || 20;
+    document.getElementById('g-prog-target').textContent = target;
+    document.getElementById('g-prog-label1').textContent = p1name + ' ' + state.score[0];
+    document.getElementById('g-prog-label2').textContent = state.score[1] + ' ' + p2name;
+    document.getElementById('g-prog-bar1').style.width = Math.min(100, state.score[0]/target*100) + '%';
+    document.getElementById('g-prog-bar2').style.width = Math.min(100, state.score[1]/target*100) + '%';
+  } else {
+    progressWrap.style.display = 'none';
+    roundLabel.style.display = 'block';
+  }
+
+  // Role banner
+  const roleBanner = document.getElementById('g-role-banner');
+  if (amExplainer(state)) {
+    roleBanner.innerHTML = `<div class="role-banner role-explainer"><div class="role-title">🎤 Your Role</div><div class="role-desc">Explain the word — no gestures!</div></div>`;
+  } else {
+    roleBanner.innerHTML = `<div class="role-banner role-guesser"><div class="role-title">👂 Your Role</div><div class="role-desc">Listen and guess the word!</div></div>`;
+  }
+
+  // Word card
+  const wordWrap = document.getElementById('g-word-wrap');
+  if (amExplainer(state)) {
+    wordWrap.innerHTML = `
+      <div class="word-card">
+        <div class="current-word">${state.currentWord}</div>
+        <div class="word-topic">${state.currentTopic ? (DIFFICULTY_LEVELS[state.currentTopic]?.emoji || '') + ' ' + state.currentTopic : ''}</div>
+      </div>`;
+  } else {
+    wordWrap.innerHTML = `
+      <div class="word-card" style="text-align:center;padding:24px">
+        <div style="font-family:var(--font-display);font-size:48px;color:var(--muted);letter-spacing:8px">???</div>
+        <div class="word-topic" style="margin-top:6px">Listen carefully</div>
+      </div>`;
+  }
+
+  // Actions
+  const actions = document.getElementById('g-actions');
+  if (amExplainer(state)) {
+    actions.innerHTML = `
+      <div class="action-row">
+        <button class="btn btn-correct" onclick="markWord(true)">✓ Correct</button>
+        <button class="btn btn-skip" onclick="markWord(false)">↷ Skip</button>
+      </div>`;
+  } else {
+    actions.innerHTML = '';
+  }
+
+  // Timer
+  startClientTimer(state);
+  document.getElementById('g-results').style.display = 'none';
+}
+
+function startClientTimer(state) {
+  if (timerInterval) clearInterval(timerInterval);
+  const elapsed = Math.floor((Date.now() - state.timerStart) / 1000);
+  let remaining = Math.max(0, state.timerSec - elapsed);
+  updateTimerDisplay(remaining, state.timerSec);
+
+  timerInterval = setInterval(() => {
+    remaining--;
+    updateTimerDisplay(remaining, state.timerSec);
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      if (isHost) endRound();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(remaining, total) {
+  document.getElementById('g-timer').textContent = remaining;
+  const arc = document.getElementById('timer-arc');
+  const circumference = 502;
+  const offset = circumference * (1 - remaining / total);
+  arc.style.strokeDashoffset = offset;
+  arc.style.stroke = remaining <= 10 ? 'var(--accent2)' : remaining <= 20 ? 'var(--accent)' : 'var(--accent)';
+}
+
+// ══════════════════════════════════════════════
+//  WORD ACTIONS
+// ══════════════════════════════════════════════
+async function markWord(correct) {
+  if (!gameState || !amExplainer(gameState)) return;
+  const state = gameState;
+  const word = state.currentWord;
+  const topic = state.currentTopic;
+
+  // Record result
+  state.roundResults = state.roundResults || [];
+  state.roundResults.push({ word, topic, correct });
+
+  // Update score
+  if (correct) {
+    const exp = getExplainer(state);
+    const team = state.players.find(p => p.name === exp.name)?.team;
+    if (team === 1) state.score[0]++;
+    else state.score[1]++;
+
+    // Check win condition in score mode
+    if (state.gameMode === 'score' && state.targetScore > 0) {
+      const winner = state.score[0] >= state.targetScore ? 0 : state.score[1] >= state.targetScore ? 1 : -1;
+      if (winner >= 0) {
+        clearInterval(timerInterval);
+        state.phase = 'final';
+        await updateState(state);
+        return;
+      }
+    }
+  }
+
+  // Next word
+  if (!state.wordQueue || state.wordQueue.length === 0) {
+    state.wordQueue = buildWordQueue(state.topics);
+  }
+  state.currentWord = state.wordQueue.shift();
+  state.currentTopic = getTopicForWord(state.currentWord, state.topics);
+
+  await updateState(state);
+}
+
+async function endRound() {
+  if (!gameState) return;
+  const state = gameState;
+  clearInterval(timerInterval);
+
+  if (state.gameMode === 'score') {
+    // In score mode: switch explainer, new timer, continue
+    state.phase = 'round_end';
+  } else {
+    if (state.round >= state.totalRounds) {
+      state.phase = 'final';
+    } else {
+      state.phase = 'round_end';
+    }
+  }
+  await updateState(state);
+}
+
+function renderRoundEnd(state) {
+  showScreen('game');
+  clearInterval(timerInterval);
+  document.getElementById('g-round').textContent = state.round;
+  document.getElementById('g-rounds').textContent = state.totalRounds;
+  document.getElementById('g-score1').textContent = state.score[0];
+  document.getElementById('g-score2').textContent = state.score[1];
+  document.getElementById('g-name1').textContent = state.players.find(p=>p.team===1)?.name || 'Blue';
+  document.getElementById('g-name2').textContent = state.players.find(p=>p.team===2)?.name || 'Red';
+  document.getElementById('g-whose-turn').textContent = state.gameMode === 'score' ? 'Turn over' : 'Round ended';
+  // Update score mode progress if active
+  if (state.gameMode === 'score') {
+    const p1name = state.players.find(p=>p.team===1)?.name || 'Blue';
+    const p2name = state.players.find(p=>p.team===2)?.name || 'Red';
+    const target = state.targetScore || 20;
+    const pw = document.getElementById('g-progress-wrap');
+    if (pw) { pw.style.display = 'block'; document.getElementById('g-round-label').style.display = 'none'; }
+    const t = document.getElementById('g-prog-target'); if(t) t.textContent = target;
+    const l1 = document.getElementById('g-prog-label1'); if(l1) l1.textContent = p1name + ' ' + state.score[0];
+    const l2 = document.getElementById('g-prog-label2'); if(l2) l2.textContent = state.score[1] + ' ' + p2name;
+    const b1 = document.getElementById('g-prog-bar1'); if(b1) b1.style.width = Math.min(100,state.score[0]/target*100)+'%';
+    const b2 = document.getElementById('g-prog-bar2'); if(b2) b2.style.width = Math.min(100,state.score[1]/target*100)+'%';
+  }
+  document.getElementById('g-role-banner').innerHTML = '';
+  document.getElementById('g-word-wrap').innerHTML = '';
+  document.getElementById('g-actions').innerHTML = '';
+  document.getElementById('timer-arc').style.strokeDashoffset = 502;
+  document.getElementById('g-timer').textContent = '0';
+
+  const results = document.getElementById('g-results');
+  results.style.display = 'flex';
+  results.style.flexDirection = 'column';
+  results.style.gap = '10px';
+
+  const list = document.getElementById('g-results-list');
+  list.innerHTML = '';
+  (state.roundResults || []).forEach(r => {
+    const cls = r.correct ? 'result-correct' : 'result-skip';
+    const icon = r.correct ? '✓' : '↷';
+    list.innerHTML += `<div class="result-item ${cls}"><span class="result-icon">${icon}</span><span>${r.word}</span><span style="margin-left:auto;font-size:12px;color:var(--muted)">${r.topic}</span></div>`;
+  });
+
+  if (isHost) {
+    document.getElementById('btn-next-round').style.display = 'block';
+    document.getElementById('g-next-waiting').style.display = 'none';
+  } else {
+    document.getElementById('btn-next-round').style.display = 'none';
+    document.getElementById('g-next-waiting').style.display = 'block';
+  }
+}
+
+async function nextRound() {
+  const state = gameState;
+  state.phase = 'game';
+  state.round++;
+  state.roundResults = [];
+  state.explainerIndex++;
+  if (!state.wordQueue || state.wordQueue.length < 5) {
+    state.wordQueue = buildWordQueue(state.topics);
+  }
+  state.currentWord = state.wordQueue.shift();
+  state.currentTopic = getTopicForWord(state.currentWord, state.topics);
+  state.timerStart = Date.now();
+  await updateState(state);
+}
+
+function renderFinal(state) {
+  showScreen('final');
+  clearInterval(timerInterval);
+  const p1 = state.players.find(p=>p.team===1);
+  const p2 = state.players.find(p=>p.team===2);
+  document.getElementById('f-score1').textContent = state.score[0];
+  document.getElementById('f-score2').textContent = state.score[1];
+  document.getElementById('f-name1').textContent = p1?.name || 'Blue';
+  document.getElementById('f-name2').textContent = p2?.name || 'Red';
+
+  const wrap = document.getElementById('final-winner');
+  let winnerName, sub;
+  if (state.score[0] > state.score[1]) {
+    winnerName = p1?.name || 'Blue';
+    sub = `Won with ${state.score[0]} points!`;
+  } else if (state.score[1] > state.score[0]) {
+    winnerName = p2?.name || 'Red';
+    sub = `Won with ${state.score[1]} points!`;
+  } else {
+    winnerName = 'TIE!';
+    sub = `Equal scores — rematch?`;
+  }
+  wrap.innerHTML = `
+    <div class="winner-banner">
+      <div class="winner-trophy">🏆</div>
+      <div class="winner-name">${winnerName}</div>
+      <div class="winner-sub">${sub}</div>
+    </div>`;
+}
+
+async function playAgain() {
+  if (!isHost) { toast('Only the host can restart'); return; }
+  const state = gameState;
+  state.phase = 'lobby';
+  state.score = [0, 0];
+  state.round = 1;
+  state.roundResults = [];
+  state.wordQueue = [];
+  state.timerStart = null;
+  await updateState(state);
+}
+
+// ══════════════════════════════════════════════
+//  WORD QUEUE
+// ══════════════════════════════════════════════
+function buildWordQueue(topics) {
+  let pool = [];
+  topics.forEach(t => {
+    if (WORD_BANK[t]) pool = pool.concat(WORD_BANK[t].map(w => ({ word: w, topic: t })));
+  });
+  // shuffle
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.map(p => p.word);
+}
+
+function getTopicForWord(word, topics) {
+  for (const t of topics) {
+    if (WORD_BANK[t] && WORD_BANK[t].includes(word)) return t;
+  }
+  return '';
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function copyCode() {
+  navigator.clipboard.writeText(roomId).then(() => toast('Code copied!'));
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════════════════
+//  ★ ВКАЖИ СВОЇ ДАНІ ТУТ
+// ══════════════════════════════════════════════
+const SUPABASE_URL = 'https://yhekszqxheljbxoucalt.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloZWtzenF4aGVsamJ4b3VjYWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MTE1NTIsImV4cCI6MjA5MDE4NzU1Mn0.cHUU9AFy2yUnfHXjqYTidmXaN6s3ybl0gi7U11eP4bY';
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+(function init() {
+  initSupabase(SUPABASE_URL, SUPABASE_KEY);
+})();
+</script>
+</body>
+</html>
