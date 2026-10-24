@@ -413,7 +413,7 @@
   #screen-final { justify-content: center; }
   #final-scoreboard { flex: 0 1 auto; }
   #screen-packs > .card:first-child { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  #packs-list { flex: 1; }
+  #packs-list { flex: 1; display: flex; flex-direction: column; gap: 10px; }
   #pack-words { min-height: 120px !important; }
 
   /* guide as accordion */
@@ -983,12 +983,15 @@ function buildCoursesUI() {
 // ── per-word picking ──
 window._wordSel = {};
 let pickRegistry = [];
+let pickKeys = [];
 let pickCurrent = null;
 function selCountText(key, total) { const s = window._wordSel[key]; return s ? (s.size + '/' + total) : String(total); }
 function pickBtn(key, cbId, words, label, transl, courseKey) {
-  pickRegistry.push({ key, cbId, words, label, transl, courseKey });
+  let pi = pickKeys.indexOf(key);
+  if (pi < 0) { pickKeys.push(key); pi = pickKeys.length - 1; }
+  pickRegistry[pi] = { key, cbId, words, label, transl, courseKey };
   const picked = !!window._wordSel[key];
-  return `<button type="button" class="btn ${picked ? 'btn-primary' : 'btn-ghost'} btn-sm" style="width:auto;padding:2px 9px;min-height:28px;font-size:12px" title="Choose words" onclick="event.preventDefault();event.stopPropagation();openWordPicker(${pickRegistry.length - 1})">✎</button>`;
+  return `<button type="button" class="btn ${picked ? 'btn-primary' : 'btn-ghost'} btn-sm" style="width:auto;padding:2px 9px;min-height:28px;font-size:12px" title="Choose words" onclick="event.preventDefault();event.stopPropagation();openWordPicker(${pi})">✎</button>`;
 }
 function openWordPicker(i) {
   const it = pickRegistry[i]; if (!it) return;
@@ -1032,11 +1035,10 @@ function applyWordPicker() {
   }
   if (it.courseKey) updateCourseAll(it.courseKey);
   closeWordPicker();
-  buildCoursesUI();
+  buildTopicCheckboxes();
 }
 
 function buildCoursesUIRaw() {
-  pickRegistry = [];
   const wrap = document.getElementById('courses-list');
   if (!wrap) return;
 
@@ -1498,19 +1500,24 @@ function buildTopicCheckboxes() {
   buildCoursesUI();
   const wrap = document.getElementById('level-checkboxes');
   if (!wrap) return;
+  const prev = {};
+  wrap.querySelectorAll('input[type=checkbox]').forEach(i => { prev[i.id] = i.checked; });
   wrap.innerHTML = '';
   ALL_LEVELS.forEach(lvl => {
     const info = DIFFICULTY_LEVELS[lvl];
     const id = 'level_' + lvl.replace(' ','_');
-    const checked = ['Very Easy','Easy','Medium'].includes(lvl) ? 'checked' : '';
+    const isOn = (id in prev) ? prev[id] : ['Very Easy','Easy','Medium'].includes(lvl);
+    const words = getLevelWords(lvl);
     wrap.innerHTML += `
       <label class="opt-row">
-        <input type="checkbox" id="${id}" ${checked}>
+        <input type="checkbox" id="${id}" ${isOn ? 'checked' : ''}>
         <span style="font-size:20px">${info.emoji}</span>
-        <span style="flex:1">
+        <span style="flex:1;min-width:0">
           <span style="font-size:14px;font-weight:700;color:var(--text)">${info.label}</span>
           <span style="font-size:12px;color:var(--muted);margin-left:8px">${info.desc}</span>
         </span>
+        <span style="font-size:11px;color:var(--muted)">${selCountText('level:' + lvl, words.length)}</span>
+        ${pickBtn('level:' + lvl, id, words, info.label, null, null)}
       </label>`;
   });
 }
@@ -1681,8 +1688,9 @@ async function startGame() {
   state.topics = topics;
   state.courseWords = courseWords.length > 0 ? courseWords : null;
   // Save pack translations into state so all players (not just host) can show them
-  if (courseWords.length > 0) {
+  {
     const packTransl = {};
+    topics.forEach(lv => { const o = levelOverrides[lv]; if (o && o.translations) Object.assign(packTransl, o.translations); });
     if (cachedPacks) {
       cachedPacks.forEach(pack => {
         const el = document.getElementById('pack_cb_' + pack.id);
@@ -1692,8 +1700,6 @@ async function startGame() {
       });
     }
     state.packTranslations = Object.keys(packTransl).length > 0 ? packTransl : null;
-  } else {
-    state.packTranslations = null;
   }
   state.phase = 'game';
   state.round = 1;
@@ -2373,7 +2379,7 @@ function buildWordQueue(topics, courseWords) {
   // Difficulty words
   if (diffTopics.length > 0) {
     diffTopics.forEach(t => {
-      if (WORD_BANK[t]) pool = pool.concat(WORD_BANK[t].map(w => ({ word: w, topic: t })));
+      pool = pool.concat(getLevelPool(t).map(w => ({ word: w, topic: t })));
     });
   }
   // Course words
@@ -2383,7 +2389,7 @@ function buildWordQueue(topics, courseWords) {
   // Fallback
   if (pool.length === 0) {
     ALL_LEVELS.forEach(t => {
-      if (WORD_BANK[t]) pool = pool.concat(WORD_BANK[t].map(w => ({ word: w, topic: t })));
+      pool = pool.concat(getLevelWords(t).map(w => ({ word: w, topic: t })));
     });
   }
   // shuffle
@@ -2396,7 +2402,7 @@ function buildWordQueue(topics, courseWords) {
 
 function getTopicForWord(word, topics) {
   for (const t of topics) {
-    if (WORD_BANK[t] && WORD_BANK[t].includes(word)) return t;
+    if (getLevelWords(t).includes(word)) return t;
   }
   return '';
 }
@@ -2423,12 +2429,35 @@ function toggleTranslation(idx) {
 //  WORD PACKS (Supabase)
 // ══════════════════════════════════════════════
 let cachedPacks = [];
+const LEVEL_PREFIX = '__level__';
+let levelOverrides = {};
+
+// Effective words of a standard level: admin override, else words.js
+function getLevelWords(lvl) {
+  const o = levelOverrides[lvl];
+  return (o && Array.isArray(o.words)) ? o.words : (WORD_BANK[lvl] || []);
+}
+// Words used in the game (respects host's per-word selection)
+function getLevelPool(lvl) {
+  const base = getLevelWords(lvl);
+  const sel = window._wordSel && window._wordSel['level:' + lvl];
+  return sel ? base.filter(w => sel.has(w)) : base;
+}
 
 async function loadPacks() {
   try {
     const { data, error } = await sbClient.from('alias_packs').select('*').order('created_at', { ascending: false });
     if (error) { console.error('loadPacks error:', error); return []; }
-    cachedPacks = data || [];
+    const all = data || [];
+    levelOverrides = {};
+    all.forEach(p => {
+      if (typeof p.name === 'string' && p.name.startsWith(LEVEL_PREFIX)) {
+        const lvl = p.name.slice(LEVEL_PREFIX.length);
+        levelOverrides[lvl] = p;
+        if (p.translations) Object.assign(TRANSLATIONS, p.translations);
+      }
+    });
+    cachedPacks = all.filter(p => !(typeof p.name === 'string' && p.name.startsWith(LEVEL_PREFIX)));
     return cachedPacks;
   } catch(e) { console.error(e); return []; }
 }
@@ -2446,11 +2475,28 @@ async function showPacksScreen() {
 function renderPacksList(packs) {
   updatePacksChrome();
   const list = document.getElementById('packs-list');
+  let levelsHtml = '';
+  if (isAdmin) {
+    levelsHtml = '<div class="section-label" style="margin:0 0 2px">Standard levels · admin</div>' + ALL_LEVELS.map(lvl => {
+      const info = DIFFICULTY_LEVELS[lvl];
+      const ov = levelOverrides[lvl];
+      const n = getLevelWords(lvl).length;
+      return `<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(245,200,66,.05);border-radius:14px;border:1px solid rgba(245,200,66,.2)">
+        <span style="font-size:18px">${info.emoji}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px">${escapeHtml(info.label)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${n} words${ov ? ' · <span style="color:var(--accent)">customized</span>' : ' · default'}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="padding:6px 10px" onclick="editLevel('${lvl}')">✎</button>
+        ${ov ? `<button class="btn btn-ghost btn-sm" style="padding:6px 10px" title="Reset to default" onclick="resetLevel('${lvl}')">↺</button>` : ''}
+      </div>`;
+    }).join('') + '<div class="section-label" style="margin:8px 0 2px">Packs</div>';
+  }
   if (!packs.length) {
-    list.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0">No packs yet. Create your first one!</div>';
+    list.innerHTML = levelsHtml + '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0">No packs yet. Create your first one!</div>';
     return;
   }
-  list.innerHTML = packs.map(p => {
+  list.innerHTML = levelsHtml + packs.map(p => {
     const count = (p.words || []).length;
     const can = canEditPack(p);
     const owner = p.owner ? escapeHtml(p.owner) : 'no owner';
@@ -2578,6 +2624,7 @@ async function importUnitAsPack() {
   const packs = await loadPacks();
   renderPacksList(packs);
   buildCoursesUI();
+  buildTopicCheckboxes();
 }
 
 function showPackForm(id) {
@@ -2589,7 +2636,8 @@ function showPackForm(id) {
 
 function showCreatePack() {
   if (!packOwnerName() && !isAdmin) { toast('Enter your name on the home screen first'); return; }
-  window._editPackId = null;
+  window._editPackId = null; window._editLevel = null;
+  document.getElementById('pack-name').readOnly = false;
   showPackForm('create-pack-form');
   document.getElementById('pack-form-title').textContent = 'New Pack';
   document.getElementById('pack-name').value = '';
@@ -2597,7 +2645,30 @@ function showCreatePack() {
   document.getElementById('pack-name').focus();
 }
 
+function editLevel(lvl) {
+  window._editPackId = levelOverrides[lvl] ? String(levelOverrides[lvl].id) : null;
+  window._editLevel = lvl;
+  showPackForm('create-pack-form');
+  document.getElementById('pack-form-title').textContent = 'Edit level · ' + (DIFFICULTY_LEVELS[lvl]?.label || lvl);
+  const nm = document.getElementById('pack-name'); nm.value = DIFFICULTY_LEVELS[lvl]?.label || lvl; nm.readOnly = true;
+  const tr = Object.assign({}, levelOverrides[lvl]?.translations || {});
+  document.getElementById('pack-words').value = getLevelWords(lvl).map(w => { const x = tr[w] || TRANSLATIONS[w]; return x ? w + ' - ' + x : w; }).join('\n');
+}
+
+async function resetLevel(lvl) {
+  const ov = levelOverrides[lvl]; if (!ov) return;
+  if (!confirm('Reset this level to the default word list?')) return;
+  try {
+    const { error } = await sbClient.rpc('alias_pack_delete', { p_id: String(ov.id), p_owner: packOwnerName(), p_secret: isAdmin ? adminCode : '' });
+    if (error) { toast(packErr(error)); return; }
+    const packs = await loadPacks(); renderPacksList(packs); buildTopicCheckboxes();
+    toast('Level reset to default');
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
 function editPack(id) {
+  window._editLevel = null;
+  const nmEl = document.getElementById('pack-name'); if (nmEl) nmEl.readOnly = false;
   const pack = (cachedPacks || []).find(p => String(p.id) === String(id));
   if (!pack) return;
   window._editPackId = String(pack.id);
@@ -2611,7 +2682,8 @@ function editPack(id) {
 function hideCreatePack() {
   const lc = document.querySelector('#screen-packs > .card:first-child'); if (lc) lc.style.display = '';
   ['create-pack-form','admin-form','import-form'].forEach(f => { const e = document.getElementById(f); if (e) e.style.display = 'none'; });
-  window._editPackId = null;
+  window._editPackId = null; window._editLevel = null;
+  const nmE = document.getElementById('pack-name'); if (nmE) nmE.readOnly = false;
 }
 
 function parsePackWords(text) {
@@ -2632,15 +2704,17 @@ function parsePackWords(text) {
 }
 
 async function savePack() {
-  const name = document.getElementById('pack-name').value.trim();
+  const editLvl = window._editLevel;
+  const name = editLvl ? LEVEL_PREFIX + editLvl : document.getElementById('pack-name').value.trim();
   const text = document.getElementById('pack-words').value.trim();
   if (!name) { toast('Enter a pack name'); return; }
+  if (!editLvl && name.startsWith(LEVEL_PREFIX)) { toast('This name is reserved'); return; }
   if (!text) { toast('Add some words'); return; }
   const { words, translations } = parsePackWords(text);
   if (words.length === 0) { toast('No valid words found'); return; }
   const ok = await rpcSavePack(window._editPackId, name, words, translations);
   if (!ok) return;
-  toast(window._editPackId ? 'Pack updated (' + words.length + ' words)' : 'Pack "' + name + '" saved (' + words.length + ' words)');
+  toast((window._editPackId || editLvl) ? (editLvl ? 'Level updated (' + words.length + ' words)' : 'Pack updated (' + words.length + ' words)') : 'Pack "' + name + '" saved (' + words.length + ' words)');
   hideCreatePack();
   const packs = await loadPacks();
   renderPacksList(packs);
