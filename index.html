@@ -26,7 +26,16 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; overflow-x: hidden; overflow-x: clip; max-width: 100%; }
+  body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
+  .app, .screen, .card, .screen > * { min-width: 0; max-width: 100%; }
+  .card, .word-card, .player-item, .result-item, .role-banner { overflow-wrap: anywhere; }
+  .player-item > span, .opt-row > span { min-width: 0; }
+  .seg .btn { min-width: 0; padding-left: 6px; padding-right: 6px; white-space: normal; line-height: 1.15; }
+  .action-row > * { min-width: 0; white-space: normal; }
+  .btn { max-width: 100%; }
+  .result-item div, .result-item span { min-width: 0; overflow-wrap: anywhere; }
+  textarea, input, select { max-width: 100%; }
 
   body {
     background: var(--bg);
@@ -253,7 +262,7 @@
     padding: 34px 18px 28px;
     text-align: center;
     box-shadow: 0 16px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08);
-    min-height: 190px;
+    min-height: 100px;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
   }
   .word-card.pop { animation: wordPop .32s cubic-bezier(.2,1.3,.4,1) both; }
@@ -360,6 +369,85 @@
   body[data-screen=game] header { padding: 30px 0 4px; }
   body[data-screen=game] .logo { font-size: 34px; letter-spacing: 5px; }
   body[data-screen=game] .tagline { display: none; }
+
+  /* ══ NO PAGE SCROLL: app always fits the viewport ══ */
+  html, body { height: 100%; overflow: hidden; }
+  body { height: 100vh; height: 100dvh; min-height: 0; }
+  .app { height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding: 8px 14px 12px; overflow: hidden; }
+  header { padding: 6px 0 8px; flex-shrink: 0; }
+  .logo { font-size: 46px; letter-spacing: 6px; }
+  .tagline { display: none; }
+  body[data-screen=home] .tagline, body[data-screen=invite] .tagline { display: block; }
+  body[data-screen=home] .logo, body[data-screen=invite] .logo { font-size: 60px; }
+  body[data-screen=home] header, body[data-screen=invite] header { padding: 18px 0 16px; }
+  .icon-btn { top: 50%; transform: translateY(-50%); }
+  body[data-screen=home] .icon-btn { top: 22px; transform: none; }
+  .screen.active { flex: 1; min-height: 0; }
+  .scroll, #lobby-content, #packs-list, #final-scoreboard, #g-results-list, #guide-content {
+    overflow-y: auto; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  #lobby-content { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .scroll::-webkit-scrollbar, #lobby-content::-webkit-scrollbar, #packs-list::-webkit-scrollbar, #g-results-list::-webkit-scrollbar, #guide-content::-webkit-scrollbar { width: 5px; }
+  #lobby-content::-webkit-scrollbar-thumb, #packs-list::-webkit-scrollbar-thumb, #g-results-list::-webkit-scrollbar-thumb, #guide-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  #lobby-content > *, #lobby-settings > * { flex-shrink: 0; }
+  #lobby-tabs { flex-shrink: 0; }
+  #screen-lobby .room-code-display { font-size: 40px; padding: 0 0 0 10px; letter-spacing: 9px; }
+
+  /* game layout */
+  #screen-game { gap: 10px; }
+  #g-actions:empty, #g-role-banner:empty, #g-word-wrap:empty, #g-overtime-banner[style*="none"], .hint-keys[style*="none"] { display: none; }
+  .hud { display: flex; gap: 10px; align-items: stretch; flex-shrink: 0; }
+  .hud #g-scoreboard { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+  .hud .timer-ring-wrap { flex-shrink: 0; }
+  .timer-container { width: 100px; height: 100px; }
+  .timer-num { font-size: 40px; }
+  .timer-label { display: none; }
+  #g-word-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  #g-word-wrap .word-card { flex: 1; min-height: 100px; padding: 18px 16px; }
+  #g-word-wrap .word-card.hidden-word { min-height: 100px; }
+  .current-word { font-size: clamp(38px, 11vw, 72px); }
+  #g-results { flex: 1; min-height: 0; }
+  #g-results > .card { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  #g-actions, #btn-start-turn, #btn-next-round { flex-shrink: 0; }
+  #g-actions:not(:empty), #btn-start-turn[style*="block"] { position: static; }
+  .role-banner { padding: 8px 14px; flex-shrink: 0; }
+  #screen-final { justify-content: center; }
+  #final-scoreboard { flex: 0 1 auto; }
+  #screen-packs > .card:first-child { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  #packs-list { flex: 1; }
+  #pack-words { min-height: 120px !important; }
+
+  /* guide as accordion */
+  #guide-modal { overflow: hidden !important; }
+  #guide-modal > div { height: 100%; display: flex; flex-direction: column; margin: 0 auto !important; padding-bottom: 14px !important; }
+  #guide-content { flex: 1; }
+  details.gsec { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; flex-shrink: 0; }
+  details.gsec > summary { list-style: none; cursor: pointer; padding: 13px 16px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; }
+  details.gsec > summary::-webkit-details-marker { display: none; }
+  details.gsec > summary::after { content: '▸'; margin-left: auto; color: var(--muted); transition: transform .2s; }
+  details.gsec[open] > summary::after { transform: rotate(90deg); }
+  details.gsec[open] > summary { background: rgba(255,255,255,.03); border-bottom: 1px solid var(--border); }
+
+  #pane-settings .section-label { margin: 12px 0 6px; }
+  #pane-settings .settings-row { margin-top: 10px; }
+  @media (max-height: 620px) {
+    body[data-screen=home] .logo, body[data-screen=invite] .logo { font-size: 42px; }
+    body[data-screen=home] header, body[data-screen=invite] header { padding: 6px 0 8px; }
+    body[data-screen=invite] .screen { gap: 8px; }
+    body[data-screen=invite] .screen > div:first-child { padding: 0 !important; }
+    .card { padding: 12px; }
+  }
+  @media (max-height: 720px) {
+    .role-desc { display: none; }
+    .logo { font-size: 34px; }
+    header { padding: 2px 0 6px; }
+    .timer-container { width: 84px; height: 84px; }
+    .timer-num { font-size: 32px; }
+    .score-num { font-size: 40px; }
+    .action-row .btn { min-height: 62px; }
+    #btn-start-turn { min-height: 58px; }
+    .card { padding: 14px; }
+  }
+
   @media (max-width: 380px) {
     .logo { font-size: 56px; }
     .room-code-display { font-size: 46px; letter-spacing: 8px; }
@@ -376,7 +464,7 @@
   </header>
 
   <!-- ── GUIDE MODAL ── -->
-  <div id="guide-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);overflow-y:auto">
+  <div id="guide-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85)">
     <div style="max-width:540px;margin:24px auto;padding:0 16px 40px">
       <!-- Header -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0 12px">
@@ -447,7 +535,8 @@
   <!-- ── SCREEN: PACKS ── -->
   <div class="screen" id="screen-packs">
     <div class="card">
-      <div class="card-title">📦 My Word Packs</div>
+      <div class="card-title">📦 Word Packs</div>
+      <div id="packs-who" style="font-size:12px;color:var(--muted);margin:-6px 0 10px"></div>
       <div id="packs-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
         <div style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0">Loading...</div>
       </div>
@@ -456,7 +545,7 @@
 
     <!-- Create pack form (hidden by default) -->
     <div class="card" id="create-pack-form" style="display:none">
-      <div class="card-title">New Pack</div>
+      <div class="card-title" id="pack-form-title">New Pack</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <input type="text" id="pack-name" placeholder="Pack name (e.g. Unit 5 Vocabulary)" maxlength="50" />
         <textarea id="pack-words" placeholder="One word per line:&#10;apple - яблуко&#10;banana - банан&#10;cherry"
@@ -469,27 +558,64 @@
       </div>
     </div>
 
-    <button class="btn btn-ghost" onclick="showScreen('home')" style="color:var(--muted)">← Back</button>
+    <!-- Admin login form -->
+    <div class="card" id="admin-form" style="display:none">
+      <div class="card-title">🔐 Admin access</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5">Enter your secret code to edit and delete any pack. The code is checked by the server.</div>
+      <input type="password" id="admin-code" placeholder="Secret code" autocomplete="off"
+        style="background:rgba(8,8,16,.7);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;padding:13px 14px;width:100%;outline:none"
+        onkeydown="if(event.key==='Enter') submitAdmin()" />
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="btn btn-primary" onclick="submitAdmin()" style="flex:1">Unlock</button>
+        <button class="btn btn-ghost" onclick="hideCreatePack()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Import course unit as editable pack (admin) -->
+    <div class="card" id="import-form" style="display:none">
+      <div class="card-title">📥 Import from course</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5">Copies a unit from words.js into an editable pack. The original stays untouched.</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <select id="imp-course" onchange="fillImportUnits()"></select>
+        <select id="imp-unit"></select>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="importUnitAsPack()" style="flex:1">Import</button>
+          <button class="btn btn-ghost" onclick="hideCreatePack()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="packs-bottom" style="display:flex;gap:8px;flex-shrink:0">
+      <button class="btn btn-ghost" onclick="showScreen('home')" style="color:var(--muted);flex:1">← Back</button>
+      <button class="btn btn-ghost" id="btn-import" onclick="showImportForm()" style="display:none;flex:1">📥 Import</button>
+      <button class="btn btn-ghost" id="btn-admin" onclick="toggleAdmin()" style="flex:1">🔐 Admin</button>
+    </div>
   </div>
 
   <!-- ── SCREEN: LOBBY ── -->
   <div class="screen" id="screen-lobby">
-    <div class="card">
-      <div class="card-title">Room Code</div>
+    <div class="card" style="padding:12px 14px;flex-shrink:0">
       <div class="room-code-display" id="room-code-disp">----</div>
-      <div class="room-hint">Share the code or the link with your friends</div>
-      <div style="display:flex;gap:8px;margin-top:14px">
+      <div style="display:flex;gap:8px;margin-top:8px">
         <button class="btn btn-ghost btn-sm" onclick="copyCode()" style="flex:1">📋 Copy Code</button>
         <button class="btn btn-ghost btn-sm" onclick="copyInviteLink()" style="flex:1;color:var(--accent)">🔗 Copy Link</button>
       </div>
     </div>
 
-    <div class="card">
+    <div class="seg" id="lobby-tabs" style="display:none">
+      <button class="btn btn-primary btn-sm" id="tab-players" onclick="setLobbyTab('players')">👥 Players</button>
+      <button class="btn btn-ghost btn-sm" id="tab-settings" onclick="setLobbyTab('settings')">⚙️ Game</button>
+      <button class="btn btn-ghost btn-sm" id="tab-words" onclick="setLobbyTab('words')">📚 Words</button>
+    </div>
+
+    <div id="lobby-content">
+    <div class="card" id="lobby-players-card">
       <div class="card-title">Players</div>
       <div class="players-list" id="lobby-players"></div>
     </div>
 
-    <div class="card" id="lobby-settings" style="display:none">
+    <div id="lobby-settings" style="display:none">
+    <div class="card" id="pane-settings">
       <div class="card-title">⚙️ Game Settings</div>
 
       <!-- Game mode -->
@@ -617,9 +743,11 @@
         </label>
       </div>
 
+    </div>
+    <div class="card" id="pane-words">
       <!-- Difficulty levels -->
       <div style="margin-top:0">
-        <div class="section-label">Difficulty</div>
+        <div class="section-label" style="margin-top:0">Difficulty</div>
         <div id="level-checkboxes" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
 
@@ -637,15 +765,17 @@
         </div>
       </div>
     </div>
+    </div>
+    </div>
 
-    <div id="lobby-btn-wrap">
-      <div id="lobby-waiting" style="text-align:center;color:var(--muted);font-size:14px;padding:8px 0">
+    <div id="lobby-btn-wrap" style="flex-shrink:0">
+      <div id="lobby-waiting" style="text-align:center;color:var(--muted);font-size:14px;padding:4px 0">
         Waiting for opponent<span class="waiting-dots"></span>
       </div>
       <button class="btn btn-primary" id="btn-start-game" onclick="startGame()" style="display:none;font-size:18px;min-height:58px">🚀 Start Game</button>
 
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="leaveRoom()" style="color:var(--muted);align-self:center">← Leave room</button>
+    <button class="btn btn-ghost btn-sm" onclick="leaveRoom()" style="color:var(--muted);align-self:center;flex-shrink:0">← Leave room</button>
   </div>
 
   <!-- ── SCREEN: GAME ── -->
@@ -673,27 +803,28 @@
     </div>
 
     <!-- Score (dynamic) -->
-    <div class="card" style="padding:10px 14px" id="g-scoreboard"></div>
+    <div class="hud">
+      <div class="card" style="padding:10px 14px" id="g-scoreboard"></div>
+      <div class="timer-ring-wrap">
+        <div class="timer-container">
+          <svg class="timer-svg" width="180" height="180" viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="80" fill="none" stroke="var(--border)" stroke-width="6"/>
+            <circle id="timer-arc" cx="90" cy="90" r="80" fill="none" stroke="var(--accent)"
+              stroke-width="6" stroke-linecap="round"
+              stroke-dasharray="502" stroke-dashoffset="0"
+              style="transition:stroke-dashoffset .5s linear,stroke .5s"/>
+          </svg>
+          <div class="timer-text-wrap">
+            <div class="timer-num" id="g-timer">60</div>
+            <div class="timer-label">seconds</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Role -->
     <div id="g-role-banner"></div>
 
-    <!-- Timer -->
-    <div class="timer-ring-wrap">
-      <div class="timer-container">
-        <svg class="timer-svg" width="180" height="180" viewBox="0 0 180 180">
-          <circle cx="90" cy="90" r="80" fill="none" stroke="var(--border)" stroke-width="6"/>
-          <circle id="timer-arc" cx="90" cy="90" r="80" fill="none" stroke="var(--accent)"
-            stroke-width="6" stroke-linecap="round"
-            stroke-dasharray="502" stroke-dashoffset="0"
-            style="transition:stroke-dashoffset .5s linear,stroke .5s"/>
-        </svg>
-        <div class="timer-text-wrap">
-          <div class="timer-num" id="g-timer">60</div>
-          <div class="timer-label">seconds</div>
-        </div>
-      </div>
-    </div>
 
     <!-- Overtime banner -->
     <div id="g-overtime-banner" style="display:none;align-items:center;justify-content:center;gap:10px;padding:10px 16px;border-radius:12px;background:rgba(232,70,58,.12);border:1px solid rgba(232,70,58,.3)">
@@ -736,6 +867,26 @@
 </div>
 
 <div id="toast"></div>
+
+<!-- Word picker modal -->
+<div id="word-picker-modal" style="display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:14px">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);width:min(480px,100%);max-height:88vh;max-height:88dvh;display:flex;flex-direction:column;padding:16px;gap:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div id="wp-title" style="font-weight:700;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+      <span id="wp-count" style="font-size:12px;color:var(--accent);font-weight:700;flex-shrink:0"></span>
+    </div>
+    <input type="text" id="wp-search" placeholder="Search words…" oninput="filterPicker()" />
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="pickAll(true)">Select all</button>
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="pickAll(false)">Clear</button>
+    </div>
+    <div id="wp-list" style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;scrollbar-width:thin"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeWordPicker()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1" onclick="applyWordPicker()">Apply</button>
+    </div>
+  </div>
+</div>
 
 <!-- End game confirmation modal -->
 <div id="end-game-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
@@ -786,6 +937,8 @@ function initSupabase(url, key) {
 //  SCREENS
 // ══════════════════════════════════════════════
 function showScreen(name) {
+  const cur = document.getElementById('screen-' + name);
+  if (cur && cur.classList.contains('active')) { document.body.dataset.screen = name; return; }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
   document.body.dataset.screen = name;
@@ -810,6 +963,80 @@ function toggleCoursesPanel() {
 }
 
 function buildCoursesUI() {
+  // Preserve checked boxes + opened panels between rebuilds
+  const wrap0 = document.getElementById('courses-list');
+  const checked = [], opened = [];
+  if (wrap0) {
+    wrap0.querySelectorAll('input[type=checkbox]').forEach(i => { if (i.checked) checked.push(i.id); });
+    wrap0.querySelectorAll('[id^="course_units_"], #packs-panel').forEach(e => { if (e.style.display === 'flex') opened.push(e.id); });
+  }
+  buildCoursesUIRaw();
+  checked.forEach(id => { const e = document.getElementById(id); if (e) e.checked = true; });
+  opened.forEach(id => {
+    const e = document.getElementById(id); if (!e) return;
+    e.style.display = 'flex'; e.style.flexDirection = 'column';
+    const arrow = document.getElementById(id === 'packs-panel' ? 'packs-arrow' : id.replace('course_units_', 'course_arrow_'));
+    if (arrow) arrow.style.transform = 'rotate(90deg)';
+  });
+}
+
+// ── per-word picking ──
+window._wordSel = {};
+let pickRegistry = [];
+let pickCurrent = null;
+function selCountText(key, total) { const s = window._wordSel[key]; return s ? (s.size + '/' + total) : String(total); }
+function pickBtn(key, cbId, words, label, transl, courseKey) {
+  pickRegistry.push({ key, cbId, words, label, transl, courseKey });
+  const picked = !!window._wordSel[key];
+  return `<button type="button" class="btn ${picked ? 'btn-primary' : 'btn-ghost'} btn-sm" style="width:auto;padding:2px 9px;min-height:28px;font-size:12px" title="Choose words" onclick="event.preventDefault();event.stopPropagation();openWordPicker(${pickRegistry.length - 1})">✎</button>`;
+}
+function openWordPicker(i) {
+  const it = pickRegistry[i]; if (!it) return;
+  pickCurrent = it;
+  const sel = window._wordSel[it.key];
+  document.getElementById('wp-title').textContent = it.label;
+  document.getElementById('wp-search').value = '';
+  document.getElementById('wp-list').innerHTML = it.words.map((w, j) => {
+    const tr = (it.transl && it.transl[w]) || TRANSLATIONS[w] || '';
+    return `<label class="opt-row wp-row" data-s="${escapeHtml((w + ' ' + tr).toLowerCase())}" style="padding:7px 10px">
+      <input type="checkbox" class="wp-cb" data-i="${j}" ${(!sel || sel.has(w)) ? 'checked' : ''} onchange="updatePickerCount()">
+      <span style="flex:1;min-width:0;font-size:14px">${escapeHtml(w)}</span>
+      <span style="font-size:12px;color:var(--muted)">${escapeHtml(tr)}</span></label>`;
+  }).join('');
+  updatePickerCount();
+  document.getElementById('word-picker-modal').style.display = 'flex';
+}
+function updatePickerCount() {
+  const all = document.querySelectorAll('#wp-list .wp-cb');
+  const n = [...all].filter(c => c.checked).length;
+  document.getElementById('wp-count').textContent = n + ' / ' + all.length;
+}
+function filterPicker() {
+  const q = document.getElementById('wp-search').value.trim().toLowerCase();
+  document.querySelectorAll('#wp-list .wp-row').forEach(r => { r.style.display = (!q || r.dataset.s.includes(q)) ? '' : 'none'; });
+}
+function pickAll(on) {
+  document.querySelectorAll('#wp-list .wp-row').forEach(r => { if (r.style.display !== 'none') r.querySelector('.wp-cb').checked = on; });
+  updatePickerCount();
+}
+function closeWordPicker() { document.getElementById('word-picker-modal').style.display = 'none'; pickCurrent = null; }
+function applyWordPicker() {
+  const it = pickCurrent; if (!it) return;
+  const chosen = [...document.querySelectorAll('#wp-list .wp-cb')].filter(c => c.checked).map(c => it.words[+c.dataset.i]);
+  const cb = document.getElementById(it.cbId);
+  if (chosen.length === 0) { delete window._wordSel[it.key]; if (cb) cb.checked = false; }
+  else {
+    if (chosen.length === it.words.length) delete window._wordSel[it.key];
+    else window._wordSel[it.key] = new Set(chosen);
+    if (cb) cb.checked = true;
+  }
+  if (it.courseKey) updateCourseAll(it.courseKey);
+  closeWordPicker();
+  buildCoursesUI();
+}
+
+function buildCoursesUIRaw() {
+  pickRegistry = [];
   const wrap = document.getElementById('courses-list');
   if (!wrap) return;
 
@@ -842,8 +1069,9 @@ function buildCoursesUI() {
             const count = (pack.words || []).length;
             return `<label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface)">
               <input type="checkbox" id="pack_cb_${pack.id}" style="accent-color:var(--accent);width:14px;height:14px">
-              <span style="flex:1;font-size:13px;color:var(--text)">${pack.name}</span>
-              <span style="font-size:11px;color:var(--muted)">${count}</span>
+              <span style="flex:1;min-width:0;font-size:13px;color:var(--text)">${escapeHtml(pack.name)}</span>
+              <span style="font-size:11px;color:var(--muted)">${selCountText('pack:' + pack.id, count)}</span>
+              ${pickBtn('pack:' + pack.id, 'pack_cb_' + pack.id, pack.words || [], pack.name, pack.translations, null)}
             </label>`;
           }).join('')}
         </div>
@@ -885,7 +1113,8 @@ function buildCoursesUI() {
                 style="accent-color:${color};width:14px;height:14px;flex-shrink:0"
                 onchange="updateCourseAll('${courseKey}')">
               <span style="font-size:13px;color:var(--text);flex:1">${unitKey}</span>
-              <span style="font-size:11px;color:var(--muted)">${unit.words.length}</span>
+              <span style="font-size:11px;color:var(--muted)">${selCountText('unit:' + courseKey + '|' + unitKey, unit.words.length)}</span>
+              ${pickBtn('unit:' + courseKey + '|' + unitKey, 'unit_' + ck + '_' + unitKey.replace(/[^a-zA-Z0-9]/g,'_'), unit.words, unitKey, null, courseKey)}
             </label>`).join('')}
         </div>
       </div>`;
@@ -950,7 +1179,10 @@ function getSelectedCourseWords() {
       const ck = courseKey.replace(/[^a-zA-Z0-9]/g,'_');
       Object.entries(course.units).forEach(([unitKey, unit]) => {
         const el = document.getElementById('unit_' + ck + '_' + unitKey.replace(/[^a-zA-Z0-9]/g,'_'));
-        if (el && el.checked) words = words.concat(unit.words);
+        if (el && el.checked) {
+          const sel = window._wordSel['unit:' + courseKey + '|' + unitKey];
+          words = words.concat(sel ? unit.words.filter(w => sel.has(w)) : unit.words);
+        }
       });
     });
   }
@@ -959,7 +1191,8 @@ function getSelectedCourseWords() {
     cachedPacks.forEach(pack => {
       const el = document.getElementById('pack_cb_' + pack.id);
       if (el && el.checked) {
-        words = words.concat(pack.words || []);
+        const psel = window._wordSel['pack:' + pack.id];
+        words = words.concat(psel ? (pack.words || []).filter(w => psel.has(w)) : (pack.words || []));
         // Merge pack translations into global TRANSLATIONS
         if (pack.translations) {
           Object.assign(TRANSLATIONS, pack.translations);
@@ -1212,7 +1445,7 @@ function handleState(state) {
     });
   }
   try {
-    if (state.phase === 'lobby') renderLobby(state);
+    if (state.phase === 'lobby') { showScreen('lobby'); renderLobby(state); }
     else if (state.phase === 'game') renderGame(state);
     else if (state.phase === 'round_end') renderRoundEnd(state);
     else if (state.phase === 'final') renderFinal(state);
@@ -1221,7 +1454,7 @@ function handleState(state) {
     // Try again after a short delay (DOM may not be ready)
     setTimeout(() => {
       try {
-        if (state.phase === 'lobby') renderLobby(state);
+        if (state.phase === 'lobby') { showScreen('lobby'); renderLobby(state); }
         else if (state.phase === 'game') renderGame(state);
         else if (state.phase === 'round_end') renderRoundEnd(state);
         else if (state.phase === 'final') renderFinal(state);
@@ -1279,6 +1512,22 @@ function buildTopicCheckboxes() {
           <span style="font-size:12px;color:var(--muted);margin-left:8px">${info.desc}</span>
         </span>
       </label>`;
+  });
+}
+
+window._lobbyTab = 'players';
+function setLobbyTab(name) {
+  if (!isHost) name = 'players';
+  window._lobbyTab = name;
+  const show = (id, on) => { const e = document.getElementById(id); if (e) e.style.display = on ? '' : 'none'; };
+  show('lobby-players-card', name === 'players');
+  show('pane-settings', name === 'settings');
+  show('pane-words', name === 'words');
+  const tabs = document.getElementById('lobby-tabs');
+  if (tabs) tabs.style.display = isHost ? 'flex' : 'none';
+  ['players','settings','words'].forEach(n => {
+    const b = document.getElementById('tab-' + n);
+    if (b) b.className = (n === name) ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
   });
 }
 
@@ -1342,6 +1591,7 @@ function renderLobby(state) {
     if (!canStart) waitEl.innerHTML = `Waiting for players<span class="waiting-dots"></span> <span style="color:var(--accent)">(${activePlayers.length}/2+ active)</span>`;
   }
   document.getElementById('btn-start-game').style.display = (canStart && isHost) ? 'block' : 'none';
+  setLobbyTab(window._lobbyTab || 'players');
 }
 
 async function setSpectator(playerName, isSpec) {
@@ -1682,6 +1932,7 @@ function renderGame(state) {
   }
 
   const trw2 = document.querySelector('.timer-ring-wrap'); if (trw2) trw2.style.display = '';
+  const gres = document.getElementById('g-results'); if (gres) gres.style.display = 'none';
   // Turn counter
   const tc = document.getElementById('g-turn-count');
   if (tc) {
@@ -1999,6 +2250,14 @@ function renderRoundEnd(state) {
   // Store results globally for translation
   window._roundResults = state.roundResults || [];
 
+  // Round just finished (everyone had a turn) vs. passing the turn to the next player
+  const roundDone = state.gameMode === 'rounds' && (!state.fullRound || state.explainerIndex % turnsPerRound(state) === 0);
+  const nextExp = getExplainer(state).name;
+  const nb = document.getElementById('btn-next-round');
+  if (nb) nb.textContent = roundDone ? 'Next Round →' : 'Next Player: ' + nextExp + ' →';
+  const nw = document.getElementById('g-next-waiting');
+  if (nw) nw.innerHTML = (roundDone ? 'Waiting for host' : 'Next up: <b>' + nextExp + '</b> · waiting for host') + '<span class="waiting-dots"></span>';
+  if (el('g-whose-turn')) el('g-whose-turn').textContent = roundDone ? 'Round ended' : 'Turn over';
   if (isHost) {
     document.getElementById('btn-next-round').style.display = 'block';
     document.getElementById('g-next-waiting').style.display = 'none';
@@ -2085,12 +2344,14 @@ async function playAgain() {
   const state = gameState;
   state.phase = 'lobby';
   state.score = [0, 0];
+  state.currentWord = null;
   state.round = 1;
   state.explainerIndex = 0;
   state.roundResults = [];
   state.wordQueue = [];
   state.timerStart = null;
   state.skipsUsed = 0;
+  state.turnStarted = false;
   state.coopUsed = 0;
   state.coopWon = null;
   if (state.baseTimerSec) state.timerSec = state.baseTimerSec;
@@ -2175,6 +2436,7 @@ async function loadPacks() {
 async function showPacksScreen() {
   showScreen('packs');
   hideCreatePack();
+  updatePacksChrome();
   const list = document.getElementById('packs-list');
   list.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0">Loading...</div>';
   const packs = await loadPacks();
@@ -2182,6 +2444,7 @@ async function showPacksScreen() {
 }
 
 function renderPacksList(packs) {
+  updatePacksChrome();
   const list = document.getElementById('packs-list');
   if (!packs.length) {
     list.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0">No packs yet. Create your first one!</div>';
@@ -2189,28 +2452,166 @@ function renderPacksList(packs) {
   }
   list.innerHTML = packs.map(p => {
     const count = (p.words || []).length;
+    const can = canEditPack(p);
+    const owner = p.owner ? escapeHtml(p.owner) : 'no owner';
     return `
-      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface);border-radius:10px;border:1px solid var(--border)">
-        <div style="flex:1">
-          <div style="font-weight:500;font-size:14px;color:var(--text)">${p.name}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">${count} word${count !== 1 ? 's' : ''}</div>
+      <div style="display:flex;align-items:center;gap:8px;padding:11px 12px;background:rgba(255,255,255,.04);border-radius:14px;border:1px solid var(--border)">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.name)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${count} word${count !== 1 ? 's' : ''} · by ${owner}</div>
         </div>
-        <button class="btn btn-ghost btn-sm" style="color:var(--accent2);padding:6px 10px" onclick="deletePack('${p.id}')">🗑</button>
+        ${can ? `<button class="btn btn-ghost btn-sm" style="padding:6px 10px" onclick="editPack('${p.id}')">✎</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--accent2);padding:6px 10px" onclick="deletePack('${p.id}')">🗑</button>` : ''}
       </div>`;
   }).join('');
 }
 
+// ══════════════════════════════════════════════
+//  PACK OWNERSHIP + ADMIN
+// ══════════════════════════════════════════════
+let isAdmin = false;
+let adminCode = '';
+try { adminCode = localStorage.getItem('alias_admin_code') || ''; } catch(e) {}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function packOwnerName() {
+  const inp = document.getElementById('player-name');
+  return ((inp && inp.value.trim()) || myName || '').trim();
+}
+function canEditPack(p) {
+  if (isAdmin) return true;
+  const me = packOwnerName().toLowerCase();
+  return !!(p.owner && me && String(p.owner).toLowerCase() === me);
+}
+function packErr(error) {
+  const m = (error && error.message) || '';
+  if (m.includes('not_allowed')) return 'You can only edit your own packs';
+  if (m.includes('owner_required')) return 'Enter your name on the home screen first';
+  if (m.includes('Could not find the function') || m.includes('alias_pack')) return 'Server not set up yet: run the SQL script in Supabase';
+  return 'Error: ' + m;
+}
+async function rpcSavePack(id, name, words, translations) {
+  try {
+    const { error } = await sbClient.rpc('alias_pack_save', {
+      p_id: id ? String(id) : null, p_name: name, p_words: words, p_translations: translations,
+      p_owner: packOwnerName(), p_secret: isAdmin ? adminCode : ''
+    });
+    if (error) { toast(packErr(error)); return false; }
+    return true;
+  } catch(e) { toast('Error: ' + e.message); return false; }
+}
+async function verifyAdmin(code) {
+  try {
+    const { data, error } = await sbClient.rpc('alias_is_admin', { p_secret: code });
+    if (error) return null;
+    return data === true;
+  } catch(e) { return null; }
+}
+async function restoreAdmin() {
+  if (!adminCode) return;
+  const ok = await verifyAdmin(adminCode);
+  if (ok === true) isAdmin = true;
+  else if (ok === false) { isAdmin = false; adminCode = ''; try { localStorage.removeItem('alias_admin_code'); } catch(e) {} }
+  updatePacksChrome();
+}
+function updatePacksChrome() {
+  const who = document.getElementById('packs-who');
+  const nm = packOwnerName();
+  if (who) who.innerHTML = (nm ? 'Signed in as <b>' + escapeHtml(nm) + '</b>' : 'No name set — enter it on the home screen') + (isAdmin ? ' · <span style="color:var(--accent)">🔐 Admin</span>' : '');
+  const ba = document.getElementById('btn-admin');
+  if (ba) { ba.textContent = isAdmin ? '🔓 Log out' : '🔐 Admin'; ba.style.color = isAdmin ? 'var(--accent)' : ''; }
+  const bi = document.getElementById('btn-import');
+  if (bi) bi.style.display = isAdmin ? '' : 'none';
+}
+function toggleAdmin() {
+  if (isAdmin) {
+    isAdmin = false; adminCode = '';
+    try { localStorage.removeItem('alias_admin_code'); } catch(e) {}
+    toast('Admin logged out');
+    renderPacksList(cachedPacks || []);
+    return;
+  }
+  showPackForm('admin-form');
+  const inp = document.getElementById('admin-code'); inp.value = ''; inp.focus();
+}
+async function submitAdmin() {
+  const code = document.getElementById('admin-code').value;
+  if (!code) return;
+  const ok = await verifyAdmin(code);
+  if (ok === true) {
+    isAdmin = true; adminCode = code;
+    try { localStorage.setItem('alias_admin_code', code); } catch(e) {}
+    toast('Admin unlocked');
+    hideCreatePack();
+    renderPacksList(cachedPacks || []);
+  } else if (ok === false) toast('Wrong code');
+  else toast('Server not set up yet: run the SQL script in Supabase');
+}
+function showImportForm() {
+  showPackForm('import-form');
+  const sel = document.getElementById('imp-course');
+  sel.innerHTML = Object.entries(window.COURSES || {}).map(([k, c]) => `<option value="${escapeHtml(k)}">${escapeHtml(c.label || k)}</option>`).join('');
+  fillImportUnits();
+}
+function fillImportUnits() {
+  const course = (window.COURSES || {})[document.getElementById('imp-course').value];
+  const sel = document.getElementById('imp-unit');
+  if (!course) { sel.innerHTML = ''; return; }
+  sel.innerHTML = '<option value="__all__">All units</option>' + Object.entries(course.units).map(([k, u]) => `<option value="${escapeHtml(k)}">${escapeHtml(k)} (${u.words.length})</option>`).join('');
+}
+async function importUnitAsPack() {
+  const ck = document.getElementById('imp-course').value;
+  const uk = document.getElementById('imp-unit').value;
+  const course = (window.COURSES || {})[ck];
+  if (!course) return;
+  const words = uk === '__all__' ? [...new Set(Object.values(course.units).flatMap(u => u.words))] : (course.units[uk]?.words || []);
+  if (!words.length) { toast('This unit has no words'); return; }
+  const translations = {};
+  words.forEach(w => { if (TRANSLATIONS[w]) translations[w] = TRANSLATIONS[w]; });
+  const name = (course.label || ck) + (uk === '__all__' ? '' : ' — ' + uk);
+  const ok = await rpcSavePack(null, name.slice(0, 50), words, translations);
+  if (!ok) return;
+  toast('Imported ' + words.length + ' words');
+  hideCreatePack();
+  const packs = await loadPacks();
+  renderPacksList(packs);
+  buildCoursesUI();
+}
+
+function showPackForm(id) {
+  const lc = document.querySelector('#screen-packs > .card:first-child'); if (lc) lc.style.display = 'none';
+  ['create-pack-form','admin-form','import-form'].forEach(f => { const e = document.getElementById(f); if (e) e.style.display = 'none'; });
+  const el = document.getElementById(id);
+  el.style.display = 'flex'; el.style.flexDirection = 'column';
+}
+
 function showCreatePack() {
-  document.getElementById('create-pack-form').style.display = 'flex';
-  document.getElementById('create-pack-form').style.flexDirection = 'column';
-  document.getElementById('create-pack-form').style.gap = '0';
+  if (!packOwnerName() && !isAdmin) { toast('Enter your name on the home screen first'); return; }
+  window._editPackId = null;
+  showPackForm('create-pack-form');
+  document.getElementById('pack-form-title').textContent = 'New Pack';
   document.getElementById('pack-name').value = '';
   document.getElementById('pack-words').value = '';
   document.getElementById('pack-name').focus();
 }
 
+function editPack(id) {
+  const pack = (cachedPacks || []).find(p => String(p.id) === String(id));
+  if (!pack) return;
+  window._editPackId = String(pack.id);
+  showPackForm('create-pack-form');
+  document.getElementById('pack-form-title').textContent = 'Edit Pack';
+  document.getElementById('pack-name').value = pack.name || '';
+  const tr = pack.translations || {};
+  document.getElementById('pack-words').value = (pack.words || []).map(w => tr[w] ? w + ' - ' + tr[w] : w).join('\n');
+}
+
 function hideCreatePack() {
-  document.getElementById('create-pack-form').style.display = 'none';
+  const lc = document.querySelector('#screen-packs > .card:first-child'); if (lc) lc.style.display = '';
+  ['create-pack-form','admin-form','import-form'].forEach(f => { const e = document.getElementById(f); if (e) e.style.display = 'none'; });
+  window._editPackId = null;
 }
 
 function parsePackWords(text) {
@@ -2237,27 +2638,20 @@ async function savePack() {
   if (!text) { toast('Add some words'); return; }
   const { words, translations } = parsePackWords(text);
   if (words.length === 0) { toast('No valid words found'); return; }
-
-  try {
-    const { error } = await sbClient.from('alias_packs').insert({
-      name,
-      words,
-      translations,
-    });
-    if (error) { toast('Error: ' + error.message); return; }
-    toast(`Pack "${name}" saved! (${words.length} words)`);
-    hideCreatePack();
-    const packs = await loadPacks();
-    renderPacksList(packs);
-    // Refresh courses panel in lobby if open
-    buildCoursesUI();
-  } catch(e) { toast('Error: ' + e.message); }
+  const ok = await rpcSavePack(window._editPackId, name, words, translations);
+  if (!ok) return;
+  toast(window._editPackId ? 'Pack updated (' + words.length + ' words)' : 'Pack "' + name + '" saved (' + words.length + ' words)');
+  hideCreatePack();
+  const packs = await loadPacks();
+  renderPacksList(packs);
+  buildCoursesUI();
 }
 
 async function deletePack(id) {
+  if (!confirm('Delete this pack?')) return;
   try {
-    const { error } = await sbClient.from('alias_packs').delete().eq('id', id);
-    if (error) { toast('Error: ' + error.message); return; }
+    const { error } = await sbClient.rpc('alias_pack_delete', { p_id: String(id), p_owner: packOwnerName(), p_secret: isAdmin ? adminCode : '' });
+    if (error) { toast(packErr(error)); return; }
     const packs = await loadPacks();
     renderPacksList(packs);
     buildCoursesUI();
@@ -2519,19 +2913,22 @@ function buildGuide() {
     }).join('');
 
     return `
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
-        <div style="padding:12px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
-          <span style="font-size:18px">${sec.emoji}</span>
-          <span style="font-size:14px;font-weight:600;color:var(--text)">${sec.title}</span>
-        </div>
+      <details class="gsec">
+        <summary><span style="font-size:18px">${sec.emoji}</span><span>${sec.title}</span></summary>
         <div style="padding:14px 16px">${body}</div>
-      </div>`;
+      </details>`;
   }).join('');
+  // accordion: only one section open at a time
+  wrap.querySelectorAll('details.gsec').forEach(d => d.addEventListener('toggle', () => {
+    if (d.open) wrap.querySelectorAll('details.gsec').forEach(o => { if (o !== d) o.open = false; });
+  }));
+  const first = wrap.querySelector('details.gsec'); if (first) first.open = true;
 }
 
 (async function init() {
   initSupabase(SUPABASE_URL, SUPABASE_KEY);
   loadPacks();
+  restoreAdmin();
 
   // Check URL for invite link ?room=XXXXXX
   const urlParams = new URLSearchParams(window.location.search);
