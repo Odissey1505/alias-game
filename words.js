@@ -182,6 +182,23 @@ window.ALL_LEVELS = Object.keys(WORD_BANK);
 
 window.COURSES = {
 
+  'Pre-Intermediate 10-12': {
+    label: 'Pre-Intermediate 10–12',
+    emoji: '📘',
+    color: '#7c3aed',
+    units: {
+      'Unit 1 — Chores, traits, relationships, family': { words: [] },
+      'Unit 2 — Shopping, gadgets':                    { words: [] },
+      'Unit 3 — Holidays, activities, nature, places': { words: [] },
+      'Unit 4 — Gadgets, technology':                  { words: [] },
+      'Unit 5 — Health, injuries':                     { words: [] },
+      'Unit 6 — Food, cooking, dishes':                { words: [] },
+      'Unit 7 — Houses, places to live, furniture':    { words: [] },
+      'Unit 8 — Professions, communication':           { words: [] },
+      'Unit 9 — Jobs, professions':                    { words: [] },
+    }
+  },
+
   'Intermediate 10-12': {
     label: 'Intermediate 10–12',
     emoji: '📗',

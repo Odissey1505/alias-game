@@ -8,390 +8,363 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root {
-    --bg: #0d0d10;
-    --surface: #16161c;
-    --card: #1e1e28;
-    --border: #2a2a38;
+    --bg: #0a0a12;
+    --surface: #161622;
+    --card: #1b1b2a;
+    --border: #2b2b40;
     --accent: #f5c842;
-    --accent2: #e8463a;
-    --text: #f0f0f5;
-    --muted: #6b6b82;
+    --accent2: #ff5a4d;
+    --text: #f3f3fa;
+    --muted: #8a8aa6;
     --team1: #4facfe;
-    --team2: #f77b72;
-    --radius: 14px;
+    --team2: #ff7b72;
+    --ok: #34d399;
+    --radius: 18px;
     --font-display: 'Bebas Neue', sans-serif;
     --font-body: 'DM Sans', sans-serif;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
 
   body {
     background: var(--bg);
     color: var(--text);
     font-family: var(--font-body);
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* bg texture */
-  body::before {
+  /* animated aurora background */
+  body::before, body::after {
     content: '';
     position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(245,200,66,.06) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 50% at 80% 90%, rgba(79,172,254,.05) 0%, transparent 60%);
+    width: 70vmax; height: 70vmax;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: .5;
     pointer-events: none;
     z-index: 0;
   }
+  body::before {
+    top: -35vmax; left: -25vmax;
+    background: radial-gradient(circle, rgba(245,200,66,.20), transparent 65%);
+    animation: drift1 18s ease-in-out infinite alternate;
+  }
+  body::after {
+    bottom: -40vmax; right: -30vmax;
+    background: radial-gradient(circle, rgba(79,172,254,.18), transparent 65%);
+    animation: drift2 22s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { to { transform: translate(8vmax, 6vmax); } }
+  @keyframes drift2 { to { transform: translate(-8vmax, -5vmax); } }
 
-  .app { position: relative; z-index: 1; width: 100%; max-width: 540px; padding: 20px 16px 40px; }
+  .app { position: relative; z-index: 1; width: 100%; max-width: 520px; padding: 14px 16px 40px; }
 
   /* ── HEADER ── */
-  header {
-    text-align: center;
-    padding: 32px 0 24px;
-  }
+  header { text-align: center; padding: 38px 0 14px; }
   .logo {
     font-family: var(--font-display);
-    font-size: 64px;
-    letter-spacing: 6px;
-    color: var(--accent);
+    font-size: 68px;
+    letter-spacing: 7px;
     line-height: 1;
-    text-shadow: 0 0 40px rgba(245,200,66,.3);
+    background: linear-gradient(180deg, #ffe58a 0%, #f5c842 55%, #e0a812 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 6px 24px rgba(245,200,66,.28));
   }
-  .logo span { color: var(--text); }
-  .tagline { font-size: 13px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  .logo span { -webkit-text-fill-color: var(--text); background: none; }
+  .tagline { font-size: 12px; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; margin-top: 6px; }
+  .icon-btn {
+    position: absolute; top: 4px; right: 0;
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: var(--font-body);
+    transition: all .2s;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
 
   /* ── SCREENS ── */
-  .screen { display: none; flex-direction: column; gap: 16px; }
-  .screen.active { display: flex; }
+  .screen { display: none; flex-direction: column; gap: 14px; }
+  .screen.active { display: flex; animation: screenIn .35s ease both; }
+  @keyframes screenIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
   /* ── CARDS ── */
   .card {
-    background: var(--card);
+    background: linear-gradient(180deg, rgba(34,34,52,.78), rgba(24,24,38,.78));
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 20px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
-
   .card-title {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px;
     color: var(--muted);
     margin-bottom: 12px;
+  }
+  .section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--muted); margin: 18px 0 8px;
   }
 
   /* ── INPUTS ── */
   .input-row { display: flex; gap: 10px; }
-  input[type=text], input[type=number], select {
-    background: var(--bg);
+  input[type=text], input[type=number], select, textarea {
+    background: rgba(8,8,16,.7);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 12px;
     color: var(--text);
     font-family: var(--font-body);
-    font-size: 15px;
-    padding: 12px 14px;
+    font-size: 16px;
+    padding: 13px 14px;
     width: 100%;
     outline: none;
-    transition: border-color .2s;
+    transition: border-color .2s, box-shadow .2s;
   }
-  input:focus, select:focus { border-color: var(--accent); }
-  input::placeholder { color: var(--muted); }
+  select { appearance: none; -webkit-appearance: none; cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 20px) 50%, calc(100% - 15px) 50%;
+    background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 34px; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,200,66,.14); }
+  input::placeholder, textarea::placeholder { color: #5c5c78; }
 
   /* ── BUTTONS ── */
   .btn {
     border: none;
-    border-radius: 10px;
+    border-radius: 14px;
     cursor: pointer;
     font-family: var(--font-body);
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 15px; font-weight: 700;
     padding: 14px 20px;
-    transition: opacity .2s, transform .1s;
+    min-height: 48px;
+    transition: transform .12s, box-shadow .2s, opacity .2s, background .2s;
     white-space: nowrap;
   }
-  .btn:hover { opacity: .88; }
+  .btn:hover { opacity: .92; }
   .btn:active { transform: scale(.97); }
-  .btn-primary { background: var(--accent); color: #0d0d10; width: 100%; }
-  .btn-ghost { background: var(--border); color: var(--text); }
+  .btn:disabled { cursor: default; }
+  .btn-primary {
+    background: linear-gradient(180deg, #ffd95e, #f0b81e);
+    color: #15120a; width: 100%;
+    box-shadow: 0 8px 22px rgba(245,200,66,.25), inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .btn-ghost { background: rgba(255,255,255,.06); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: rgba(255,255,255,.1); }
   .btn-danger { background: var(--accent2); color: #fff; }
-  .btn-sm { padding: 8px 14px; font-size: 13px; }
+  .btn-sm { padding: 8px 14px; font-size: 13px; min-height: 38px; border-radius: 11px; }
+
+  /* segmented control (mode picker) */
+  .seg { display: flex; gap: 4px; padding: 4px; background: rgba(8,8,16,.7); border: 1px solid var(--border); border-radius: 14px; }
+  .seg .btn { flex: 1; width: auto; border: none; background: transparent; color: var(--muted); box-shadow: none; min-height: 40px; }
+  .seg .btn.btn-primary { background: linear-gradient(180deg, #ffd95e, #f0b81e); color: #15120a; box-shadow: 0 4px 14px rgba(245,200,66,.25); }
 
   /* ── ROOM CODE ── */
   .room-code-display {
     font-family: var(--font-display);
-    font-size: 52px;
-    letter-spacing: 10px;
+    font-size: 58px; letter-spacing: 12px;
     color: var(--accent);
     text-align: center;
-    padding: 12px 0;
-    text-shadow: 0 0 30px rgba(245,200,66,.25);
+    padding: 6px 0 6px 12px;
+    text-shadow: 0 0 34px rgba(245,200,66,.3);
   }
   .room-hint { font-size: 13px; color: var(--muted); text-align: center; }
 
   /* ── PLAYERS LIST ── */
   .players-list { display: flex; flex-direction: column; gap: 8px; }
   .player-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: var(--surface);
-    border-radius: 10px;
-    font-size: 14px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: 14px;
+    font-size: 14px; font-weight: 500;
   }
-  .player-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #3ecf8e;
-    flex-shrink: 0;
+  .player-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); flex-shrink: 0; box-shadow: 0 0 8px currentColor; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; flex-shrink: 0;
+    color: #0a0a12;
   }
-  .player-badge {
-    margin-left: auto;
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-weight: 500;
-  }
+  .player-badge { margin-left: auto; font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
   .badge-host { background: rgba(245,200,66,.15); color: var(--accent); }
   .badge-t1 { background: rgba(79,172,254,.15); color: var(--team1); }
   .badge-t2 { background: rgba(247,123,114,.15); color: var(--team2); }
 
-  /* ── TEAM SETUP ── */
-  .teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .team-box {
-    border-radius: 12px;
-    padding: 14px;
-    border: 1px solid var(--border);
+  /* option rows (difficulty / switches) */
+  .opt-row {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    padding: 10px 12px; border-radius: 13px;
+    border: 1px solid var(--border); background: rgba(255,255,255,.03);
+    transition: border-color .2s, background .2s;
   }
-  .team-box.t1 { border-color: rgba(79,172,254,.3); background: rgba(79,172,254,.05); }
-  .team-box.t2 { border-color: rgba(247,123,114,.3); background: rgba(247,123,114,.05); }
-  .team-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 10px;
+  .opt-row:hover { border-color: rgba(245,200,66,.5); }
+  .opt-row:has(input:checked) { border-color: rgba(245,200,66,.65); background: rgba(245,200,66,.08); }
+  .opt-row input[type=checkbox] { accent-color: var(--accent); width: 18px; height: 18px; flex-shrink: 0; }
+  .switch-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border); background: rgba(255,255,255,.03);
   }
-  .t1 .team-label { color: var(--team1); }
-  .t2 .team-label { color: var(--team2); }
 
   /* ── SCOREBOARD ── */
-  .score-display {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 0;
+  .score-num { font-family: var(--font-display); font-size: 56px; line-height: 1; }
+
+  /* ── GAME TOP BAR ── */
+  .round-info {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted); padding: 2px 2px;
   }
-  .score-num {
-    font-family: var(--font-display);
-    font-size: 56px;
-    line-height: 1;
+  .round-info strong { color: var(--text); }
+  #g-whose-turn {
+    flex: 1; text-align: center; font-weight: 700; font-size: 13px; color: var(--text);
+    background: rgba(255,255,255,.06); border: 1px solid var(--border);
+    border-radius: 999px; padding: 6px 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .score-t1 { color: var(--team1); text-align: right; }
-  .score-t2 { color: var(--team2); text-align: left; }
-  .score-vs { color: var(--muted); font-size: 14px; font-weight: 300; }
-  .score-team-name { font-size: 12px; color: var(--muted); }
-  .score-team-name.right { text-align: right; }
 
   /* ── TIMER ── */
-  .timer-ring-wrap { display: flex; justify-content: center; padding: 8px 0; }
-  svg.timer-svg { transform: rotate(-90deg); }
-  .timer-text-wrap {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-  }
-  .timer-num {
-    font-family: var(--font-display);
-    font-size: 64px;
-    line-height: 1;
-    color: var(--text);
-  }
-  .timer-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
-  .timer-container { position: relative; width: 180px; height: 180px; }
+  .timer-ring-wrap { display: flex; justify-content: center; padding: 2px 0; }
+  svg.timer-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+  .timer-text-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+  .timer-num { font-family: var(--font-display); font-size: 50px; line-height: 1; color: var(--text); }
+  .timer-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .timer-container { position: relative; width: 128px; height: 128px; }
 
   /* ── WORD CARD ── */
   .word-card {
-    background: linear-gradient(135deg, rgba(245,200,66,.12), rgba(245,200,66,.04));
-    border: 1px solid rgba(245,200,66,.25);
-    border-radius: 18px;
-    padding: 28px 20px;
+    position: relative; overflow: hidden;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245,200,66,.20), transparent 70%),
+      linear-gradient(180deg, rgba(40,36,18,.9), rgba(24,22,16,.9));
+    border: 1px solid rgba(245,200,66,.35);
+    border-radius: 24px;
+    padding: 34px 18px 28px;
     text-align: center;
+    box-shadow: 0 16px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08);
+    min-height: 190px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
   }
+  .word-card.pop { animation: wordPop .32s cubic-bezier(.2,1.3,.4,1) both; }
+  @keyframes wordPop { from { opacity: 0; transform: translateY(14px) scale(.94); } to { opacity: 1; transform: none; } }
   .current-word {
     font-family: var(--font-display);
-    font-size: 52px;
+    font-size: clamp(44px, 14vw, 76px);
     letter-spacing: 2px;
     color: var(--accent);
-    line-height: 1.1;
-    margin-bottom: 6px;
+    line-height: 1.05;
+    word-break: break-word;
+    text-shadow: 0 4px 28px rgba(245,200,66,.25);
   }
+  .word-transl { font-size: 20px; font-weight: 500; color: #ffe9a3; opacity: .92; }
   .word-topic {
-    font-size: 12px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    display: inline-block;
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 2px;
+    background: rgba(255,255,255,.06); border-radius: 999px; padding: 4px 12px;
   }
+  .word-card.hidden-word { background: rgba(255,255,255,.03); border: 1px dashed var(--border); box-shadow: none; min-height: 150px; }
 
   /* ── ROLE BADGE ── */
-  .role-banner {
-    border-radius: 12px;
-    padding: 14px 18px;
-    text-align: center;
-  }
-  .role-explainer { background: rgba(245,200,66,.1); border: 1px solid rgba(245,200,66,.2); }
-  .role-guesser   { background: rgba(79,172,254,.1); border: 1px solid rgba(79,172,254,.2); }
-  .role-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 3px; }
+  .role-banner { border-radius: 14px; padding: 11px 16px; text-align: center; }
+  .role-explainer { background: rgba(245,200,66,.1); border: 1px solid rgba(245,200,66,.25); }
+  .role-guesser   { background: rgba(79,172,254,.1); border: 1px solid rgba(79,172,254,.25); }
+  .role-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 2px; }
   .role-explainer .role-title { color: var(--accent); }
   .role-guesser .role-title { color: var(--team1); }
-  .role-desc { font-size: 14px; color: var(--text); }
+  .role-desc { font-size: 13px; color: var(--text); opacity: .85; }
 
-  /* ── ACTION BUTTONS GAME ── */
-  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .btn-correct { background: #2ecc71; color: #fff; }
-  .btn-skip    { background: var(--border); color: var(--muted); }
-
-  /* ── ROUND INFO ── */
-  .round-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-    color: var(--muted);
-    padding: 2px 4px;
-  }
-  .round-info strong { color: var(--text); }
+  /* ── ACTION BUTTONS GAME (thumb zone, sticky) ── */
+  #g-actions:not(:empty), #btn-start-turn[style*="block"] { position: sticky; bottom: 14px; z-index: 5; }
+  .action-row { display: grid; grid-template-columns: 1fr 1.5fr; gap: 12px; }
+  .action-row .btn { min-height: 76px; font-size: 18px; border-radius: 20px; box-shadow: 0 10px 28px rgba(0,0,0,.4); }
+  .btn-correct { background: linear-gradient(180deg, #43e39a, #1fb877); color: #04281a; }
+  .btn-skip    { background: #2a2a40; color: #cfcfe6; border: 1px solid var(--border); }
+  #btn-start-turn { min-height: 70px; font-size: 19px; border-radius: 20px; }
+  .hint-keys { text-align: center; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .turn-count { font-size: 12px; font-weight: 700; color: var(--ok); background: rgba(52,211,153,.12); border-radius: 999px; padding: 4px 10px; }
 
   /* ── WAITING ── */
-  .waiting-dots::after {
-    content: '...';
-    animation: dots 1.2s infinite;
-  }
-  @keyframes dots {
-    0%,20%{content:'.'} 40%,60%{content:'..'} 80%,100%{content:'...'}
-  }
+  .waiting-dots::after { content: '...'; animation: dots 1.2s infinite; }
+  @keyframes dots { 0%,20%{content:'.'} 40%,60%{content:'..'} 80%,100%{content:'...'} }
 
   /* ── RESULTS ── */
   .results-list { display: flex; flex-direction: column; gap: 8px; }
-  .result-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-size: 14px;
-  }
-  .result-correct { background: rgba(46,204,113,.1); border: 1px solid rgba(46,204,113,.2); }
-  .result-skip    { background: rgba(107,107,130,.1); border: 1px solid rgba(107,107,130,.15); }
+  .result-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; font-size: 14px; }
+  .result-correct { background: rgba(52,211,153,.10); border: 1px solid rgba(52,211,153,.25); }
+  .result-skip    { background: rgba(138,138,166,.08); border: 1px solid rgba(138,138,166,.18); }
   .result-icon { font-size: 16px; flex-shrink: 0; }
+  .result-sum { display: flex; gap: 8px; margin-bottom: 12px; }
+  .result-sum span { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 999px; }
+  .result-sum .ok { background: rgba(52,211,153,.14); color: var(--ok); }
+  .result-sum .no { background: rgba(138,138,166,.14); color: var(--muted); }
 
   /* ── WINNER ── */
   .winner-banner {
-    text-align: center;
-    padding: 28px 20px;
-    background: linear-gradient(135deg, rgba(245,200,66,.1), rgba(245,200,66,.03));
-    border: 1px solid rgba(245,200,66,.2);
-    border-radius: 18px;
+    text-align: center; padding: 34px 20px;
+    background: radial-gradient(ellipse 80% 70% at 50% 0%, rgba(245,200,66,.22), transparent 70%), rgba(30,28,18,.8);
+    border: 1px solid rgba(245,200,66,.35);
+    border-radius: 24px; box-shadow: var(--shadow);
   }
-  .winner-trophy { font-size: 48px; margin-bottom: 10px; }
-  .winner-name {
-    font-family: var(--font-display);
-    font-size: 40px;
-    letter-spacing: 3px;
-    color: var(--accent);
-  }
+  .winner-trophy { font-size: 64px; margin-bottom: 8px; animation: bob 2s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-8px) rotate(-4deg); } }
+  .winner-name { font-family: var(--font-display); font-size: 48px; letter-spacing: 3px; color: var(--accent); }
   .winner-sub { font-size: 14px; color: var(--muted); margin-top: 6px; }
 
   /* ── SETTINGS ── */
-  .settings-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .setting-block label {
-    display: block;
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
+  .settings-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .setting-block label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1.5px; }
 
   /* ── CONFIG ── */
-  .config-box {
-    background: rgba(255,255,255,.03);
-    border: 1px dashed var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.7;
-  }
-  .config-box code {
-    color: var(--accent);
-    background: rgba(245,200,66,.08);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 12px;
-  }
+  .config-box { background: rgba(255,255,255,.03); border: 1px dashed var(--border); border-radius: 12px; padding: 16px; font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .config-box code { color: var(--accent); background: rgba(245,200,66,.08); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
   .config-box a { color: var(--team1); text-decoration: none; }
 
   /* ── DIVIDER ── */
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--muted);
-    font-size: 12px;
-  }
-  .divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+  .divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── MODALS ── */
+  #guide-modal, #end-game-modal { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 
   /* ── TOAST ── */
   #toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--text);
-    color: var(--bg);
-    padding: 10px 20px;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: transform .3s ease;
-    z-index: 999;
-    pointer-events: none;
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(90px);
+    background: var(--text); color: var(--bg);
+    padding: 11px 22px; border-radius: 30px;
+    font-size: 14px; font-weight: 600;
+    transition: transform .3s cubic-bezier(.2,1.2,.4,1), opacity .2s;
+    z-index: 999; pointer-events: none; box-shadow: var(--shadow);
+    opacity: 0;
   }
-  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-  @keyframes pulse-red {
-    0%,100% { stroke: var(--accent2); opacity: 1; }
-    50% { stroke: var(--accent2); opacity: 0.4; }
-  }
+  @keyframes pulse-red { 0%,100% { stroke: var(--accent2); opacity: 1; } 50% { stroke: var(--accent2); opacity: .4; } }
 
-  .status-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 4px;
-  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; }
   .dot-ok { background: #3ecf8e; }
   .dot-warn { background: var(--accent); }
+
+  body[data-screen=game] header { padding: 30px 0 4px; }
+  body[data-screen=game] .logo { font-size: 34px; letter-spacing: 5px; }
+  body[data-screen=game] .tagline { display: none; }
+  @media (max-width: 380px) {
+    .logo { font-size: 56px; }
+    .room-code-display { font-size: 46px; letter-spacing: 8px; }
+    .action-row .btn { min-height: 68px; font-size: 16px; }
+  }
 </style>
 </head>
 <body>
@@ -399,11 +372,7 @@
   <header style="position:relative">
     <div class="logo">ALI<span>AS</span></div>
     <div class="tagline">Play together · Online</div>
-    <button onclick="showGuide()" style="position:absolute;top:0;right:0;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--font-body);transition:all .2s"
-      onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
-      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
-      📖 Guide
-    </button>
+    <button class="icon-btn" onclick="showGuide()">📖 Guide</button>
   </header>
 
   <!-- ── GUIDE MODAL ── -->
@@ -427,19 +396,18 @@
   <!-- Full home screen (host) -->
   <div class="screen active" id="screen-home">
     <div class="card">
-      <div class="card-title">Your Name</div>
+      <div class="card-title">👋 Your Name</div>
       <input type="text" id="player-name" placeholder="Enter your name" maxlength="20" />
     </div>
     <div class="card">
-      <button class="btn btn-primary" onclick="createRoom()" style="margin-bottom:10px">Create Room</button>
-      <div class="divider">or join existing</div>
-      <br>
+      <button class="btn btn-primary" onclick="createRoom()" style="font-size:17px;min-height:56px">🎲 Create Room</button>
+      <div class="divider" style="margin:16px 0">or join</div>
       <div class="input-row">
-        <input type="text" id="join-code" placeholder="Room code" maxlength="6" style="text-transform:uppercase;font-family:var(--font-display);font-size:20px;letter-spacing:4px" />
+        <input type="text" id="join-code" placeholder="Room code" maxlength="6" style="text-transform:uppercase;font-family:var(--font-display);font-size:24px;letter-spacing:6px;text-align:center" />
         <button class="btn btn-ghost" onclick="joinRoom()">Join</button>
       </div>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="showPacksScreen()" style="color:var(--muted);width:100%">📦 My Word Packs</button>
+    <button class="btn btn-ghost" onclick="showPacksScreen()" style="color:var(--muted);width:100%">📦 My Word Packs</button>
   </div>
 
   <!-- Invite join screen (shown when opening via invite link) -->
@@ -509,9 +477,8 @@
     <div class="card">
       <div class="card-title">Room Code</div>
       <div class="room-code-display" id="room-code-disp">----</div>
-      <div class="room-hint">Share this code with your opponent</div>
-      <br>
-      <div style="display:flex;gap:8px">
+      <div class="room-hint">Share the code or the link with your friends</div>
+      <div style="display:flex;gap:8px;margin-top:14px">
         <button class="btn btn-ghost btn-sm" onclick="copyCode()" style="flex:1">📋 Copy Code</button>
         <button class="btn btn-ghost btn-sm" onclick="copyInviteLink()" style="flex:1;color:var(--accent)">🔗 Copy Link</button>
       </div>
@@ -523,13 +490,14 @@
     </div>
 
     <div class="card" id="lobby-settings" style="display:none">
-      <div class="card-title">Game Settings</div>
+      <div class="card-title">⚙️ Game Settings</div>
 
       <!-- Game mode -->
       <!-- Mode selector -->
-      <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div class="seg">
         <button id="mode-btn-rounds" class="btn btn-primary btn-sm" style="flex:1" onclick="selectMode('rounds')">🔄 Rounds</button>
         <button id="mode-btn-score" class="btn btn-ghost btn-sm" style="flex:1" onclick="selectMode('score')">🎯 First to N</button>
+        <button id="mode-btn-coop" class="btn btn-ghost btn-sm" style="flex:1" onclick="selectMode('coop')">🤝 Co-op</button>
       </div>
 
       <!-- Rounds mode -->
@@ -578,9 +546,64 @@
           </select>
         </div>
       </div>
-      <br>
+      <!-- Co-op options -->
+      <div id="mode-coop-opts" style="display:none">
+        <div class="settings-row">
+          <div class="setting-block">
+            <label>Words to guess</label>
+            <select id="cfg-coop-target">
+              <option value="10">10</option><option value="15">15</option><option value="20" selected>20</option>
+              <option value="25">25</option><option value="30">30</option><option value="40">40</option>
+            </select>
+          </div>
+          <div class="setting-block">
+            <label>Total time (min)</label>
+            <select id="cfg-coop-total">
+              <option value="3">3</option><option value="5" selected>5</option><option value="7">7</option>
+              <option value="10">10</option><option value="15">15</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div class="setting-block">
+            <label>Turn timer (sec)</label>
+            <select id="cfg-timer-coop">
+              <option value="30">30</option><option value="45" selected>45</option>
+              <option value="60">60</option><option value="90">90</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5">All players are one team. Guess the target number of words before the total time runs out.</div>
+      </div>
+
+      <!-- Full round option (rounds mode) -->
+      <div id="mode-rounds-extra" style="margin-top:12px">
+        <div class="switch-row">
+          <div>
+            <div style="font-size:14px;font-weight:500;color:var(--text)">🔁 Round = everyone explains</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">A round ends when every player has had a turn</div>
+          </div>
+          <label style="position:relative;width:40px;height:22px;flex-shrink:0">
+            <input type="checkbox" id="cfg-fullround" checked
+              style="opacity:0;width:100%;height:100%;position:absolute;cursor:pointer;margin:0;z-index:1"
+              onchange="toggleSwitch(this,'cfg-fullround')">
+            <span id="cfg-fullround-track" style="position:absolute;inset:0;border-radius:11px;background:var(--accent);transition:background .2s"></span>
+            <span id="cfg-fullround-thumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;transform:translateX(18px)"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-label">Skips</div>
+      <select id="cfg-skip">
+        <option value="free">Free skips (no penalty)</option>
+        <option value="penalty">−1 point for every skip</option>
+        <option value="first_free">First skip free, then −1</option>
+        <option value="limit">Max 3 skips per turn</option>
+      </select>
+
+      <div class="section-label">Hints</div>
       <!-- Show translation toggle -->
-      <div style="margin-top:14px;margin-bottom:14px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div class="switch-row">
         <div>
           <div style="font-size:14px;font-weight:500;color:var(--text)">🇺🇦 Show translation</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px">Show Ukrainian translation to the explainer</div>
@@ -596,13 +619,13 @@
 
       <!-- Difficulty levels -->
       <div style="margin-top:0">
-        <div class="card-title" style="margin-bottom:8px">Difficulty</div>
+        <div class="section-label">Difficulty</div>
         <div id="level-checkboxes" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
 
       <!-- Courses (expandable) -->
       <div style="margin-top:12px">
-        <button id="btn-expand-courses" class="btn btn-ghost btn-sm" style="width:100%;font-size:13px;color:var(--muted)" onclick="toggleCoursesPanel()">
+        <button id="btn-expand-courses" class="btn btn-ghost" style="width:100%;font-size:14px;color:var(--muted)" onclick="toggleCoursesPanel()">
           📚 + Courses
         </button>
         <div id="courses-panel" style="display:none;margin-top:10px">
@@ -619,10 +642,10 @@
       <div id="lobby-waiting" style="text-align:center;color:var(--muted);font-size:14px;padding:8px 0">
         Waiting for opponent<span class="waiting-dots"></span>
       </div>
-      <button class="btn btn-primary" id="btn-start-game" onclick="startGame()" style="display:none">Start Game →</button>
+      <button class="btn btn-primary" id="btn-start-game" onclick="startGame()" style="display:none;font-size:18px;min-height:58px">🚀 Start Game</button>
 
     </div>
-    <button class="btn btn-ghost" onclick="leaveRoom()" style="color:var(--muted)">← Leave</button>
+    <button class="btn btn-ghost btn-sm" onclick="leaveRoom()" style="color:var(--muted);align-self:center">← Leave room</button>
   </div>
 
   <!-- ── SCREEN: GAME ── -->
@@ -630,12 +653,8 @@
     <div class="round-info">
       <span id="g-round-label">Round <strong id="g-round">1</strong> of <strong id="g-rounds">3</strong></span>
       <span id="g-whose-turn"></span>
-      <button id="btn-end-game" onclick="confirmEndGame()"
-        style="display:none;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;transition:all .2s"
-        onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
-        ✕ End
-      </button>
+      <span class="turn-count" id="g-turn-count" style="display:none"></span>
+      <button id="btn-end-game" class="btn btn-ghost btn-sm" onclick="confirmEndGame()" style="display:none;color:var(--muted);min-height:32px;padding:4px 10px;font-size:12px">✕ End</button>
     </div>
     <div id="g-progress-wrap" style="display:none">
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px">
@@ -654,7 +673,7 @@
     </div>
 
     <!-- Score (dynamic) -->
-    <div class="card" style="padding:12px 16px" id="g-scoreboard"></div>
+    <div class="card" style="padding:10px 14px" id="g-scoreboard"></div>
 
     <!-- Role -->
     <div id="g-role-banner"></div>
@@ -679,7 +698,7 @@
     <!-- Overtime banner -->
     <div id="g-overtime-banner" style="display:none;align-items:center;justify-content:center;gap:10px;padding:10px 16px;border-radius:12px;background:rgba(232,70,58,.12);border:1px solid rgba(232,70,58,.3)">
       <span style="font-size:20px">⏰</span>
-      <span style="color:var(--accent2);font-weight:600;font-size:15px">Last word! Finish this one</span>
+      <span style="color:var(--accent2);font-weight:700;font-size:15px">Last word! Finish this one</span>
     </div>
 
     <!-- Word (explainer only) -->
@@ -687,6 +706,7 @@
 
     <!-- Action buttons -->
     <div id="g-actions"></div>
+    <div class="hint-keys" id="g-keys" style="display:none">⌨ → correct · ← skip</div>
 
     <!-- Start turn button -->
     <button class="btn btn-primary" id="btn-start-turn" onclick="startTurn()"
@@ -695,10 +715,11 @@
     <!-- Round results overlay -->
     <div id="g-results" style="display:none">
       <div class="card">
-        <div class="card-title">This Round</div>
+        <div class="card-title">This turn</div>
+        <div id="g-results-sum" class="result-sum"></div>
         <div class="results-list" id="g-results-list"></div>
       </div>
-      <button class="btn btn-primary" id="btn-next-round" onclick="nextRound()" style="display:none">Next Round →</button>
+      <button class="btn btn-primary" id="btn-next-round" onclick="nextRound()" style="display:none;font-size:17px;min-height:56px">Next Round →</button>
       <div id="g-next-waiting" style="text-align:center;color:var(--muted);font-size:14px;padding:8px 0;display:none">
         Waiting for host<span class="waiting-dots"></span>
       </div>
@@ -709,8 +730,8 @@
   <div class="screen" id="screen-final">
     <div id="final-winner"></div>
     <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:8px" id="final-scoreboard"></div>
-    <button class="btn btn-primary" onclick="playAgain()">Play Again</button>
-    <button class="btn btn-ghost" onclick="leaveRoom()" style="color:var(--muted)">← Main Menu</button>
+    <button class="btn btn-primary" onclick="playAgain()" style="font-size:17px;min-height:56px">🔁 Play Again</button>
+    <button class="btn btn-ghost btn-sm" onclick="leaveRoom()" style="color:var(--muted);align-self:center">← Main Menu</button>
   </div>
 </div>
 
@@ -767,6 +788,8 @@ function initSupabase(url, key) {
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
+  document.body.dataset.screen = name;
+  window.scrollTo(0, 0);
 }
 
 // ══════════════════════════════════════════════
@@ -1049,12 +1072,24 @@ function updateShowTranslation(checked) {
   }
 }
 
+window._mode = 'rounds';
 function selectMode(mode) {
-  const isScore = mode === 'score';
-  document.getElementById('mode-btn-rounds').className = isScore ? 'btn btn-ghost btn-sm' : 'btn btn-primary btn-sm';
-  document.getElementById('mode-btn-score').className  = isScore ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
-  document.getElementById('mode-rounds-opts').style.display = isScore ? 'none' : 'grid';
-  document.getElementById('mode-score-opts').style.display  = isScore ? 'grid' : 'none';
+  window._mode = mode;
+  ['rounds','score','coop'].forEach(m => {
+    const b = document.getElementById('mode-btn-' + m);
+    if (b) b.className = (m === mode) ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+  });
+  document.getElementById('mode-rounds-opts').style.display = mode === 'rounds' ? 'grid' : 'none';
+  document.getElementById('mode-rounds-extra').style.display = mode === 'rounds' ? 'block' : 'none';
+  document.getElementById('mode-score-opts').style.display  = mode === 'score' ? 'grid' : 'none';
+  document.getElementById('mode-coop-opts').style.display   = mode === 'coop' ? 'block' : 'none';
+}
+
+function toggleSwitch(cb, prefix) {
+  const track = document.getElementById(prefix + '-track');
+  const thumb = document.getElementById(prefix + '-thumb');
+  if (track) track.style.background = cb.checked ? 'var(--accent)' : 'var(--border)';
+  if (thumb) thumb.style.transform = cb.checked ? 'translateX(18px)' : 'translateX(0)';
 }
 
 async function createRoom() {
@@ -1236,11 +1271,11 @@ function buildTopicCheckboxes() {
     const id = 'level_' + lvl.replace(' ','_');
     const checked = ['Very Easy','Easy','Medium'].includes(lvl) ? 'checked' : '';
     wrap.innerHTML += `
-      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 10px;border-radius:8px;border:1px solid var(--border);transition:border-color .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-        <input type="checkbox" id="${id}" ${checked} style="accent-color:var(--accent);width:16px;height:16px">
-        <span style="font-size:18px">${info.emoji}</span>
+      <label class="opt-row">
+        <input type="checkbox" id="${id}" ${checked}>
+        <span style="font-size:20px">${info.emoji}</span>
         <span style="flex:1">
-          <span style="font-size:14px;font-weight:500;color:var(--text)">${info.label}</span>
+          <span style="font-size:14px;font-weight:700;color:var(--text)">${info.label}</span>
           <span style="font-size:12px;color:var(--muted);margin-left:8px">${info.desc}</span>
         </span>
       </label>`;
@@ -1275,8 +1310,8 @@ function renderLobby(state) {
 
     list.innerHTML += `
       <div class="player-item" style="opacity:${isSpectator?'0.55':'1'}">
-        <div class="player-dot" style="background:${tColor}"></div>
-        <span style="flex:1">${p.name}${meBadge}</span>
+        <div class="avatar" style="background:${isSpectator?'#3a3a52':tColor}">${(p.name||'?').charAt(0).toUpperCase()}</div>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${p.name}${meBadge}</span>
         ${hostBadge}
         ${roleLabel ? `<span class="player-badge" style="background:${tColor}22;color:${tColor};border:1px solid ${tColor}44;font-size:11px">${roleLabel}</span>` : ''}
         <span style="display:flex;gap:4px;align-items:center">${controls}</span>
@@ -1293,10 +1328,10 @@ function renderLobby(state) {
     list.parentNode.insertBefore(panel, list.nextSibling);
   }
   panel.innerHTML = isHost ? `
-    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--muted)">
-      <input type="checkbox" id="team-mode-cb" ${state.teamMode?'checked':''}
-        style="accent-color:var(--accent);width:16px;height:16px" onchange="setTeamMode(this.checked)">
-      <span>Team mode (Blue vs Red)</span>
+    <label class="opt-row">
+      <input type="checkbox" id="team-mode-cb" ${state.teamMode?'checked':''} onchange="setTeamMode(this.checked)">
+      <span style="flex:1"><span style="font-size:14px;font-weight:700">Team mode</span>
+      <span style="font-size:12px;color:var(--muted);margin-left:8px">Blue vs Red</span></span>
     </label>` : '';
 
   const activePlayers = state.players.filter(p => !p.spectator);
@@ -1357,11 +1392,13 @@ async function switchPlayerTeam(playerName, newTeam) {
 
 
 async function startGame() {
-  const mode = document.getElementById('mode-btn-score').classList.contains('btn-primary') ? 'score' : 'rounds';
+  const mode = window._mode || 'rounds';
   const rounds = parseInt(document.getElementById('cfg-rounds').value);
   const timer = mode === 'score'
     ? parseInt(document.getElementById('cfg-timer-score').value)
-    : parseInt(document.getElementById('cfg-timer').value);
+    : mode === 'coop'
+      ? parseInt(document.getElementById('cfg-timer-coop').value)
+      : parseInt(document.getElementById('cfg-timer').value);
   const targetScore = mode === 'score' ? parseInt(document.getElementById('cfg-target').value) : 0;
   let topics = [];
   let courseWords = getSelectedCourseWords();
@@ -1377,6 +1414,20 @@ async function startGame() {
   state.targetScore = targetScore;
   state.totalRounds = rounds;
   state.timerSec = timer;
+  state.baseTimerSec = timer;
+  state.fullRound = mode === 'rounds' && document.getElementById('cfg-fullround')?.checked !== false;
+  state.skipRule = document.getElementById('cfg-skip')?.value || 'free';
+  state.skipLimit = 3;
+  state.skipsUsed = 0;
+  state.coopWon = null;
+  if (mode === 'coop') {
+    state.coopTarget = parseInt(document.getElementById('cfg-coop-target').value);
+    state.coopTotal = parseInt(document.getElementById('cfg-coop-total').value) * 60;
+    state.coopUsed = 0;
+    state.timerSec = Math.min(timer, state.coopTotal);
+    state.teamMode = false;
+    state.players.filter(p => !p.spectator).forEach(p => { p.team = 1; });
+  }
   state.topics = topics;
   state.courseWords = courseWords.length > 0 ? courseWords : null;
   // Save pack translations into state so all players (not just host) can show them
@@ -1400,7 +1451,7 @@ async function startGame() {
   state.showTranslation = document.getElementById('cfg-show-transl')?.checked !== false;
   // Score array: one slot per active team
   const activePl = state.players.filter(p => !p.spectator);
-  const teamCount = state.teamMode
+  const teamCount = mode === 'coop' ? 1 : state.teamMode
     ? 2
     : (activePl.length > 0 ? Math.max(...activePl.map(p => p.team)) : 1);
   state.score = Array(Math.max(teamCount, 1)).fill(0);
@@ -1483,6 +1534,7 @@ const TEAM_NAMES_LIST  = ['Blue','Red','Purple','Green','Orange','Pink'];
 
 function getTeamName(state, teamIdx) {
   const team = teamIdx + 1;
+  if (state.gameMode === 'coop') return 'Team';
   if (state.teamMode) return TEAM_NAMES_LIST[teamIdx] || ('Team ' + team);
   const p = (state.players || []).find(p => p.team === team && !p.spectator);
   return p ? p.name : ('Player ' + team);
@@ -1493,6 +1545,24 @@ function renderScoreboard(state) {
   const wrap = document.getElementById('g-scoreboard');
   if (!wrap) return;
 
+  if (state.gameMode === 'coop') {
+    const target = state.coopTarget || 20;
+    const sc = state.score[0] || 0;
+    const rem = Math.max(0, (state.coopTotal || 0) - (state.coopUsed || 0));
+    const mm = Math.floor(rem / 60), ss = String(rem % 60).padStart(2, '0');
+    wrap.innerHTML = `
+      <div style="padding:4px 0">
+        <div style="display:flex;align-items:baseline;justify-content:center;gap:8px">
+          <span style="font-family:var(--font-display);font-size:56px;line-height:1;color:var(--ok)">${sc}</span>
+          <span style="font-family:var(--font-display);font-size:28px;color:var(--muted)">/ ${target}</span>
+        </div>
+        <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:8px 0 8px">
+          <div style="height:100%;width:${Math.min(100, sc / target * 100)}%;background:linear-gradient(90deg,#34d399,#f5c842);border-radius:4px;transition:width .4s"></div>
+        </div>
+        <div style="text-align:center;font-size:12px;color:var(--muted)">🤝 Co-op · ⏳ ${mm}:${ss} left in total</div>
+      </div>`;
+    return;
+  }
   const teamCount = state.score.length;
 
   if (teamCount <= 2) {
@@ -1565,6 +1635,9 @@ function renderGame(state) {
     document.getElementById('g-prog-label2').textContent = (state.score[1]||0) + ' ' + getTeamName(state,1);
     document.getElementById('g-prog-bar1').style.width = Math.min(100, (state.score[0]||0)/target*100) + '%';
     document.getElementById('g-prog-bar2').style.width = Math.min(100, (state.score[1]||0)/target*100) + '%';
+  } else if (state.gameMode === 'coop') {
+    progressWrap.style.display = 'none';
+    roundLabel.style.display = 'none';
   } else {
     progressWrap.style.display = 'none';
     roundLabel.style.display = 'block';
@@ -1573,7 +1646,7 @@ function renderGame(state) {
   // Role banner
   const roleBanner = document.getElementById('g-role-banner');
   if (amSpectator(state)) {
-    roleBanner.innerHTML = `<div class="role-banner role-guesser" style="border-color:var(--border);background:transparent"><div class="role-title" style="color:var(--muted)">👁 Spectator mode</div><div class="role-desc">You can see all words but cannot play</div></div>`;
+    roleBanner.innerHTML = `<div class="role-banner role-guesser" style="border-color:var(--border);background:rgba(255,255,255,.03)"><div class="role-title" style="color:var(--muted)">👁 Spectator mode</div><div class="role-desc">You can see all words but cannot play</div></div>`;
   } else if (amExplainer(state)) {
     roleBanner.innerHTML = `<div class="role-banner role-explainer"><div class="role-title">🎤 Your turn to explain</div><div class="role-desc">Describe the word — no gestures, no direct translation!</div></div>`;
   } else {
@@ -1589,21 +1662,36 @@ function renderGame(state) {
     const transl = TRANSLATIONS[w] || (state.packTranslations && state.packTranslations[w]) || null;
     const lvl = DIFFICULTY_LEVELS[t];
     const showTransl = state.showTranslation !== false; // default true
-    const subline = (transl && showTransl && !amSpectator(state))
-      ? '🇺🇦 ' + transl
-      : lvl ? lvl.emoji + ' ' + t : t;
+    const specView = amSpectator(state);
+    const translLine = (transl && (showTransl || specView)) ? `<div class="word-transl">🇺🇦 ${transl}</div>` : '';
+    const topicLine = (lvl ? lvl.emoji + ' ' + t : t);
+    const isNew = window._lastShownWord !== w + '|' + state.round + '|' + state.explainerIndex;
+    window._lastShownWord = w + '|' + state.round + '|' + state.explainerIndex;
     wordWrap.innerHTML = `
-      <div class="word-card" ${amSpectator(state) ? 'style="border-color:rgba(107,107,130,.3);background:rgba(107,107,130,.08)"' : ''}>
-        <div class="current-word" ${amSpectator(state) ? 'style="color:var(--muted)"' : ''}>${w}</div>
-        <div class="word-topic">${subline}</div>
+      <div class="word-card${isNew ? ' pop' : ''}" ${specView ? 'style="border-color:rgba(138,138,166,.35);background:rgba(138,138,166,.07)"' : ''}>
+        <div class="current-word" ${specView ? 'style="color:#b5b5cc"' : ''}>${w}</div>
+        ${translLine}
+        ${topicLine ? `<div class="word-topic">${topicLine}</div>` : ''}
       </div>`;
   } else {
     wordWrap.innerHTML = `
-      <div class="word-card" style="text-align:center;padding:24px">
-        <div style="font-family:var(--font-display);font-size:48px;color:var(--muted);letter-spacing:8px">???</div>
-        <div class="word-topic" style="margin-top:6px">Listen carefully</div>
+      <div class="word-card hidden-word">
+        <div style="font-family:var(--font-display);font-size:64px;color:#4a4a66;letter-spacing:10px;line-height:1">???</div>
+        <div class="word-topic">Listen carefully</div>
       </div>`;
   }
+
+  const trw2 = document.querySelector('.timer-ring-wrap'); if (trw2) trw2.style.display = '';
+  // Turn counter
+  const tc = document.getElementById('g-turn-count');
+  if (tc) {
+    const rr = state.roundResults || [];
+    const okN = rr.filter(r => r.correct).length;
+    tc.style.display = (state.turnStarted && rr.length) ? 'inline-block' : 'none';
+    tc.textContent = '✓ ' + okN;
+  }
+  const keysEl = document.getElementById('g-keys');
+  if (keysEl) keysEl.style.display = 'none';
 
   // Actions + timer
   const actions = document.getElementById('g-actions');
@@ -1635,10 +1723,11 @@ function renderGame(state) {
   document.getElementById('btn-start-turn').style.display = 'none';
 
   if (amExplainer(state)) {
+    if (keysEl) keysEl.style.display = 'block';
     actions.innerHTML = `
       <div class="action-row">
+        <button class="btn btn-skip" id="btn-skip" onclick="markWord(false)">${skipLabel(state)}</button>
         <button class="btn btn-correct" id="btn-correct" onclick="markWord(true)">✓ Correct</button>
-        <button class="btn btn-skip" id="btn-skip" onclick="markWord(false)">↷ Skip</button>
       </div>`;
   } else {
     actions.innerHTML = '';
@@ -1694,10 +1783,60 @@ function updateTimerDisplay(remaining, total) {
 // ══════════════════════════════════════════════
 //  WORD ACTIONS
 // ══════════════════════════════════════════════
+
+// Turns that make one full round (everyone explains at least once)
+function turnsPerRound(state) {
+  const active = getActivePlayers(state);
+  if (!active.length) return 1;
+  if (state.teamMode) {
+    const t1 = active.filter(p => p.team === 1).length;
+    const t2 = active.filter(p => p.team === 2).length;
+    if (t1 && t2) return 2 * Math.max(t1, t2);
+  }
+  return active.length;
+}
+
+// Called when a turn is over (after the last word / timer). Decides what comes next.
+function advanceTurn(state) {
+  state.explainerIndex = (state.explainerIndex || 0) + 1;
+  state.skipsUsed = 0;
+  if (state.gameMode === 'score') {
+    const winner = (state.score || []).findIndex(s => s >= (state.targetScore || 0));
+    state.phase = (state.targetScore > 0 && winner >= 0) ? 'final' : 'round_end';
+  } else if (state.gameMode === 'coop') {
+    state.coopUsed = (state.coopUsed || 0) + (state.timerSec || 0);
+    const rem = (state.coopTotal || 0) - state.coopUsed;
+    if ((state.score[0] || 0) >= state.coopTarget) { state.coopWon = true; state.phase = 'final'; }
+    else if (rem <= 0) { state.coopWon = false; state.phase = 'final'; }
+    else { state.timerSec = Math.min(state.baseTimerSec || state.timerSec, rem); state.phase = 'round_end'; }
+  } else {
+    if (state.fullRound) {
+      if (state.explainerIndex % turnsPerRound(state) === 0) state.round = (state.round || 1) + 1;
+    } else {
+      state.round = (state.round || 1) + 1;
+    }
+    state.phase = state.round > state.totalRounds ? 'final' : 'round_end';
+  }
+}
+
+function skipLabel(state) {
+  const rule = state.skipRule || 'free';
+  const used = state.skipsUsed || 0;
+  if (rule === 'penalty') return '↷ Skip <small style="opacity:.7">−1</small>';
+  if (rule === 'first_free') return used === 0 ? '↷ Skip <small style="opacity:.7">free</small>' : '↷ Skip <small style="opacity:.7">−1</small>';
+  if (rule === 'limit') return '↷ Skip <small style="opacity:.7">' + Math.max(0, (state.skipLimit || 3) - used) + ' left</small>';
+  return '↷ Skip';
+}
+
 async function markWord(correct) {
   if (!gameState || !amExplainer(gameState)) return;
   if (isProcessing) return;
+  if (!correct && gameState.skipRule === 'limit' && !inOvertime && (gameState.skipsUsed || 0) >= (gameState.skipLimit || 3)) {
+    toast('No skips left this turn');
+    return;
+  }
   isProcessing = true;
+  try { navigator.vibrate && navigator.vibrate(correct ? 25 : 10); } catch(e) {}
   // Visually disable buttons
   const bc = document.getElementById('btn-correct');
   const bs = document.getElementById('btn-skip');
@@ -1709,7 +1848,23 @@ async function markWord(correct) {
 
   // Record result
   state.roundResults = state.roundResults || [];
-  state.roundResults.push({ word, topic, correct });
+  const resultEntry = { word, topic, correct };
+  state.roundResults.push(resultEntry);
+
+  if (!correct) {
+    const rule = state.skipRule || 'free';
+    const used = state.skipsUsed || 0;
+    state.skipsUsed = used + 1;
+    if (rule === 'penalty' || (rule === 'first_free' && used >= 1)) {
+      const ex = getExplainer(state);
+      const pl = state.players.find(p => p.name === ex.name);
+      const pidx = (pl?.team || 1) - 1;
+      if (!state.score) state.score = [];
+      while (state.score.length <= pidx) state.score.push(0);
+      if (state.score[pidx] > 0) { state.score[pidx]--; resultEntry.penalty = true; }
+      else resultEntry.penalty = false;
+    }
+  }
 
   // Update score
   if (correct) {
@@ -1720,6 +1875,17 @@ async function markWord(correct) {
     if (!state.score) state.score = [];
     while (state.score.length <= idx) state.score.push(0);
     state.score[idx]++;
+
+    // Co-op win
+    if (state.gameMode === 'coop' && state.score[0] >= state.coopTarget) {
+      clearInterval(timerInterval);
+      isProcessing = false;
+      state.coopWon = true;
+      state.coopUsed = (state.coopUsed || 0) + (state.timerSec || 0);
+      state.phase = 'final';
+      await updateState(state);
+      return;
+    }
 
     // Check win condition in score mode
     if (state.gameMode === 'score' && state.targetScore > 0) {
@@ -1742,15 +1908,7 @@ async function markWord(correct) {
   if (inOvertime) {
     inOvertime = false;
     isProcessing = false;
-    // Rotate explainer after overtime word
-    state.explainerIndex++;
-    if (state.gameMode === 'score' && state.targetScore > 0) {
-      const winner = state.score.findIndex(s => s >= state.targetScore);
-      state.phase = winner >= 0 ? 'final' : 'round_end';
-    } else {
-      state.round = (state.round || 1) + 1;
-      state.phase = state.round > state.totalRounds ? 'final' : 'round_end';
-    }
+    advanceTurn(state);
     await updateState(state);
     return;
   }
@@ -1767,20 +1925,8 @@ async function endRound() {
   const state = gameState;
   clearInterval(timerInterval);
 
-  // Always rotate explainer when timer runs out
-  state.explainerIndex++;
   state.roundResults = state.roundResults || [];
-
-  if (state.gameMode === 'score') {
-    state.phase = 'round_end';
-  } else {
-    state.round = (state.round || 1) + 1;
-    if (state.round > state.totalRounds) {
-      state.phase = 'final';
-    } else {
-      state.phase = 'round_end';
-    }
-  }
+  advanceTurn(state);
   await updateState(state);
 }
 
@@ -1790,12 +1936,13 @@ function renderRoundEnd(state) {
   isProcessing = false; // always release lock on round end
 
   const el = id => document.getElementById(id);
-  if (el('g-round')) el('g-round').textContent = Math.min(state.round - 1, state.totalRounds);
+  if (el('g-round')) el('g-round').textContent = Math.min(state.fullRound ? state.round : state.round - 1, state.totalRounds);
   if (el('g-rounds')) el('g-rounds').textContent = state.totalRounds;
-  if (el('g-whose-turn')) el('g-whose-turn').textContent = state.gameMode === 'score' ? 'Turn over' : 'Round ended';
+  if (el('g-whose-turn')) el('g-whose-turn').textContent = (state.gameMode === 'score' || state.gameMode === 'coop' || state.fullRound) ? 'Turn over' : 'Round ended';
   if (el('btn-end-game')) el('btn-end-game').style.display = 'none';
   if (el('btn-start-turn')) el('btn-start-turn').style.display = 'none';
   renderScoreboard(state);
+  if (state.gameMode === 'coop') { const pw0 = document.getElementById('g-progress-wrap'); if (pw0) pw0.style.display = 'none'; const rl0 = document.getElementById('g-round-label'); if (rl0) rl0.style.display = 'none'; }
   // Update score mode progress if active
   if (state.gameMode === 'score') {
       // Update progress bar for score mode (teams 1 & 2 only)
@@ -1812,6 +1959,7 @@ function renderRoundEnd(state) {
   document.getElementById('g-role-banner').innerHTML = '';
   document.getElementById('g-word-wrap').innerHTML = '';
   document.getElementById('g-actions').innerHTML = '';
+  const trw = document.querySelector('.timer-ring-wrap'); if (trw) trw.style.display = 'none';
   document.getElementById('timer-arc').style.strokeDashoffset = 502;
   document.getElementById('timer-arc').style.animation = '';
   document.getElementById('g-timer').textContent = '0';
@@ -1825,16 +1973,25 @@ function renderRoundEnd(state) {
 
   const list = document.getElementById('g-results-list');
   list.innerHTML = '';
+  const sumEl = document.getElementById('g-results-sum');
+  if (sumEl) {
+    const rr = state.roundResults || [];
+    const okN = rr.filter(r => r.correct).length;
+    const penN = rr.filter(r => r.penalty).length;
+    sumEl.innerHTML = `<span class="ok">✓ ${okN} guessed</span><span class="no">↷ ${rr.length - okN} skipped</span>` + (penN ? `<span class="no" style="color:var(--accent2)">−${penN} pts</span>` : '');
+  }
+  const tc2 = document.getElementById('g-turn-count'); if (tc2) tc2.style.display = 'none';
+  const keys2 = document.getElementById('g-keys'); if (keys2) keys2.style.display = 'none';
   (state.roundResults || []).forEach((r, i) => {
     const cls = r.correct ? 'result-correct' : 'result-skip';
-    const icon = r.correct ? '✓' : '↷';
+    const icon = r.correct ? '✓' : (r.penalty ? '−1' : '↷');
     list.innerHTML += `
       <div class="result-item ${cls}" style="flex-direction:column;align-items:stretch;gap:0;padding:0">
         <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer" onclick="toggleTranslation(${i})">
           <span class="result-icon">${icon}</span>
           <span style="font-weight:500">${r.word}</span>
           <span style="margin-left:auto;font-size:12px;color:var(--muted)">${r.topic}</span>
-          <span style="font-size:11px;color:var(--muted);opacity:.6">🇺🇦</span>
+          <span style="font-size:12px;opacity:.7">🇺🇦</span>
         </div>
         <div id="transl-${i}" style="display:none;padding:4px 14px 10px 38px;font-size:13px;color:var(--muted);font-style:italic"></div>
       </div>`;
@@ -1857,7 +2014,9 @@ async function nextRound() {
   // round and explainerIndex already incremented in endRound
   // only reset per-turn state here
   state.roundResults = [];
+  state.skipsUsed = 0;
   state.turnStarted = false;
+  timerDuration = state.timerSec;
   const nq = buildWordQueue(state.topics, state.courseWords);
   state.currentWord = nq.shift();
   state.currentTopic = getTopicForWord(state.currentWord, state.topics);
@@ -1869,6 +2028,22 @@ async function nextRound() {
 function renderFinal(state) {
   showScreen('final');
   clearInterval(timerInterval);
+  if (state.gameMode === 'coop') {
+    const won = state.coopWon === true;
+    const sc = state.score[0] || 0;
+    const w0 = document.getElementById('final-winner');
+    if (w0) w0.innerHTML = `
+      <div class="winner-banner">
+        <div class="winner-trophy">${won ? '🎉' : '⏰'}</div>
+        <div class="winner-name">${won ? 'YOU DID IT!' : "TIME'S UP"}</div>
+        <div class="winner-sub">${sc} / ${state.coopTarget} words${won ? ' — great teamwork!' : ' — try again!'}</div>
+      </div>`;
+    const fb = document.getElementById('final-scoreboard');
+    if (fb) fb.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:10px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.35)">
+      <span style="font-size:14px;font-weight:600">🤝 Team</span>
+      <span style="font-family:var(--font-display);font-size:28px;color:var(--ok)">${sc}</span></div>`;
+    return;
+  }
   // Find winner — highest score
   const maxScore = Math.max(...state.score);
   const winners = state.score.reduce((acc, s, i) => s === maxScore ? [...acc, i] : acc, []);
@@ -1896,7 +2071,8 @@ function renderFinal(state) {
       </div>`;
     }).join('');
   }
-  wrap.innerHTML = `
+  const wrap = document.getElementById('final-winner');
+  if (wrap) wrap.innerHTML = `
     <div class="winner-banner">
       <div class="winner-trophy">🏆</div>
       <div class="winner-name">${winnerName}</div>
@@ -1914,6 +2090,13 @@ async function playAgain() {
   state.roundResults = [];
   state.wordQueue = [];
   state.timerStart = null;
+  state.skipsUsed = 0;
+  state.coopUsed = 0;
+  state.coopWon = null;
+  if (state.baseTimerSec) state.timerSec = state.baseTimerSec;
+  if (state.gameMode === 'coop') {
+    state.players.filter(p => !p.spectator).forEach((p, i) => { p.team = state.teamMode ? (i % 2) + 1 : i + 1; });
+  }
   // Remove lobby-team-toggle so it re-renders fresh
   const el = document.getElementById('lobby-team-toggle');
   if (el) el.remove();
@@ -1969,7 +2152,7 @@ function toggleTranslation(idx) {
   }
   const word = (window._roundResults || [])[idx]?.word;
   if (!word) return;
-  const transl = TRANSLATIONS[word] || '—';
+  const transl = TRANSLATIONS[word] || (gameState && gameState.packTranslations && gameState.packTranslations[word]) || '—';
   el.textContent = transl;
   el.style.display = 'block';
 }
@@ -2195,6 +2378,25 @@ function buildGuide() {
       ]
     },
     {
+      emoji: '🎮', title: 'Режими та пропуски',
+      content: [
+        { type: 'h', text: 'Режими гри' },
+        { type: 'steps', items: [
+          '<b>Rounds</b> — фіксована кількість раундів. З опцією <b>Round = everyone explains</b> раунд закінчується, коли пояснили всі гравці, тож ходів у всіх порівну.',
+          '<b>First to N</b> — перемагає той, хто перший набрав N слів.',
+          '<b>Co-op</b> — усі в одній команді: треба вгадати задану кількість слів за загальний час.',
+        ]},
+        { type: 'h', text: 'Пропуски (Skips)' },
+        { type: 'steps', items: [
+          '<b>Free</b> — пропуски безкоштовні.',
+          '<b>−1 point</b> — кожен пропуск забирає 1 бал.',
+          '<b>First skip free</b> — перший пропуск безкоштовний, далі −1.',
+          '<b>Max 3</b> — не більше трьох пропусків за хід.',
+        ]},
+        { type: 'tip', text: 'Штраф не опускає рахунок нижче нуля.' },
+      ]
+    },
+    {
       emoji: '⚙️', title: 'Налаштування в лобі',
       content: [
         { type: 'note', text: 'Усі налаштування доступні лише хосту.' },
@@ -2357,6 +2559,20 @@ function buildGuide() {
   const restored = await restoreSession();
   if (!restored) showScreen('home');
 })();
+
+// ══════════════════════════════════════════════
+//  KEYBOARD SHORTCUTS (explainer): → correct, ← skip
+// ══════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||''))) return;
+  if (!document.getElementById('screen-game').classList.contains('active')) return;
+  if (!gameState || gameState.phase !== 'game') return;
+  const bc = document.getElementById('btn-correct');
+  const bs = document.getElementById('btn-skip');
+  if (!bc || !bs || bc.disabled) return;
+  if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); markWord(true); }
+  else if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); markWord(false); }
+});
 </script>
 </body>
 </html>
